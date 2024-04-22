@@ -1,4 +1,4 @@
-package sqlstore
+package repository
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 )
 
 type SessionRepository struct {
-	Store *Store
+	DB *gorm.DB
 }
 
 func (pr *SessionRepository) Create(s *models.Session) error {
@@ -21,7 +21,7 @@ func (pr *SessionRepository) Create(s *models.Session) error {
 		IsActive: s.IsActive,
 	}
 
-	result := pr.Store.DB.Table("sessions").Create(&project).Scan(&s)
+	result := pr.DB.Table("sessions").Create(&project).Scan(&s)
 
 	return result.Error
 }
@@ -29,7 +29,7 @@ func (pr *SessionRepository) Create(s *models.Session) error {
 func (pr *SessionRepository) FindById(id string) (*models.Session, error) {
 	project := &models.Session{}
 
-	result := pr.Store.DB.Table("sessions").Where("id = ?", id).First(project).Scan(&project)
+	result := pr.DB.Table("sessions").Where("id = ?", id).First(project).Scan(&project)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -40,7 +40,7 @@ func (pr *SessionRepository) FindById(id string) (*models.Session, error) {
 func (pr *SessionRepository) FindByToken(token string) (*models.Session, error) {
 	project := &models.Session{}
 
-	result := pr.Store.DB.Table("sessions").Where("token = ?", token).First(project).Scan(&project)
+	result := pr.DB.Table("sessions").Where("token = ?", token).First(project).Scan(&project)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -49,7 +49,7 @@ func (pr *SessionRepository) FindByToken(token string) (*models.Session, error) 
 }
 
 func (pr *SessionRepository) Delete(session *models.Session) error {
-	result := pr.Store.DB.Table("sessions").Delete(session)
+	result := pr.DB.Table("sessions").Delete(session)
 	if result.Error != nil {
 		return store.ErrRecordNotFound
 	}

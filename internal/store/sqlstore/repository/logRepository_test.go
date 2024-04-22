@@ -1,4 +1,4 @@
-package sqlstore_test
+package repository_test
 
 import (
 	"github.com/aetherteam/logger_center/internal/models"
@@ -42,7 +42,7 @@ func TestLogRepository_FindAll(t *testing.T) {
 	assert.NoError(t, s.Log().Create(l))
 	assert.NotNil(t, l.ID)
 
-	logs, err := s.Log().FindAll(&utils.Filter{})
+	logs, err := s.Log().FindAll(l.ProjectID, &utils.Filter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, logs)
 }
@@ -85,7 +85,7 @@ func TestLogRepository_FindByChainId(t *testing.T) {
 	assert.NoError(t, s.Log().Create(l))
 	assert.NotNil(t, l.ID)
 
-	log, err := s.Log().FindByChainId(l.ChainID)
+	log, err := s.Log().FindByChainId(l.ChainID, &utils.Filter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, log)
 }

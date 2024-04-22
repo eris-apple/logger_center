@@ -1,4 +1,4 @@
-package sqlstore
+package repository
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository struct {
-	Store *Store
+	DB *gorm.DB
 }
 
 func (ur *UserRepository) Create(u *models.User) error {
@@ -22,7 +22,7 @@ func (ur *UserRepository) Create(u *models.User) error {
 		Password: u.Password,
 	}
 
-	result := ur.Store.DB.Table("users").Create(&user).Scan(&u)
+	result := ur.DB.Table("users").Create(&user).Scan(&u)
 	if result.Error != nil {
 		return store.ErrRecordNotCreated
 	}
@@ -34,7 +34,7 @@ func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) 
 	user := &[]models.User{}
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := ur.Store.DB.
+	result := ur.DB.
 		Table("users").
 		Find(&user).
 		Offset(filter.Offset).
@@ -52,7 +52,7 @@ func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) 
 func (ur *UserRepository) FindById(id string) (*models.User, error) {
 	user := &models.User{}
 
-	result := ur.Store.DB.Table("users").Where("id = ?", id).First(user).Scan(&user)
+	result := ur.DB.Table("users").Where("id = ?", id).First(user).Scan(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -63,7 +63,7 @@ func (ur *UserRepository) FindById(id string) (*models.User, error) {
 func (ur *UserRepository) FindByEmail(email string) (*models.User, error) {
 	user := &models.User{}
 
-	result := ur.Store.DB.Table("users").Where("email = ?", email).First(user).Scan(&user)
+	result := ur.DB.Table("users").Where("email = ?", email).First(user).Scan(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -72,7 +72,7 @@ func (ur *UserRepository) FindByEmail(email string) (*models.User, error) {
 }
 
 func (ur *UserRepository) Update(user *models.User) error {
-	result := ur.Store.DB.Table("users").Save(user).Scan(&user)
+	result := ur.DB.Table("users").Save(user).Scan(&user)
 	if result.Error != nil {
 		return store.ErrRecordNotUpdated
 	}
@@ -81,7 +81,7 @@ func (ur *UserRepository) Update(user *models.User) error {
 }
 
 func (ur *UserRepository) Delete(user *models.User) error {
-	result := ur.Store.DB.Table("users").Delete(user)
+	result := ur.DB.Table("users").Delete(user)
 	if result.Error != nil {
 		return store.ErrRecordNotDeleted
 	}

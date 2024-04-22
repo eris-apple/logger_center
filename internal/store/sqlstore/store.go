@@ -2,15 +2,16 @@ package sqlstore
 
 import (
 	"github.com/aetherteam/logger_center/internal/store"
+	"github.com/aetherteam/logger_center/internal/store/sqlstore/repository"
 	"gorm.io/gorm"
 )
 
 type Store struct {
 	DB                *gorm.DB
-	userRepository    *UserRepository
-	projectRepository *ProjectRepository
-	sessionRepository *SessionRepository
-	logRepository     *LogRepository
+	userRepository    *repository.UserRepository
+	projectRepository *repository.ProjectRepository
+	sessionRepository *repository.SessionRepository
+	logRepository     *repository.LogRepository
 }
 
 func New(db *gorm.DB) *Store {
@@ -24,8 +25,8 @@ func (s *Store) User() store.UserRepository {
 		return s.userRepository
 	}
 
-	s.userRepository = &UserRepository{
-		Store: s,
+	s.userRepository = &repository.UserRepository{
+		DB: s.DB,
 	}
 
 	return s.userRepository
@@ -36,8 +37,8 @@ func (s *Store) Project() store.ProjectRepository {
 		return s.projectRepository
 	}
 
-	s.projectRepository = &ProjectRepository{
-		Store: s,
+	s.projectRepository = &repository.ProjectRepository{
+		DB: s.DB,
 	}
 
 	return s.projectRepository
@@ -48,8 +49,8 @@ func (s *Store) Session() store.SessionRepository {
 		return s.sessionRepository
 	}
 
-	s.sessionRepository = &SessionRepository{
-		Store: s,
+	s.sessionRepository = &repository.SessionRepository{
+		DB: s.DB,
 	}
 
 	return s.sessionRepository
@@ -60,8 +61,8 @@ func (s *Store) Log() store.LogRepository {
 		return s.logRepository
 	}
 
-	s.logRepository = &LogRepository{
-		Store: s,
+	s.logRepository = &repository.LogRepository{
+		DB: s.DB,
 	}
 
 	return s.logRepository

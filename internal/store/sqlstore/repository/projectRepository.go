@@ -1,4 +1,4 @@
-package sqlstore
+package repository
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 )
 
 type ProjectRepository struct {
-	Store *Store
+	DB *gorm.DB
 }
 
 func (pr *ProjectRepository) Create(p *models.Project) error {
@@ -22,7 +22,7 @@ func (pr *ProjectRepository) Create(p *models.Project) error {
 		IsActive: p.IsActive,
 	}
 
-	result := pr.Store.DB.Table("projects").Create(&project).Scan(&p)
+	result := pr.DB.Table("projects").Create(&project).Scan(&p)
 
 	return result.Error
 }
@@ -31,7 +31,7 @@ func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, e
 	project := &[]models.Project{}
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := pr.Store.DB.
+	result := pr.DB.
 		Table("projects").
 		Find(&project).
 		Offset(filter.Offset).
@@ -49,7 +49,7 @@ func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, e
 func (pr *ProjectRepository) FindById(id string) (*models.Project, error) {
 	project := &models.Project{}
 
-	result := pr.Store.DB.Table("projects").Where("id = ?", id).First(project).Scan(&project)
+	result := pr.DB.Table("projects").Where("id = ?", id).First(project).Scan(&project)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -58,7 +58,7 @@ func (pr *ProjectRepository) FindById(id string) (*models.Project, error) {
 }
 
 func (pr *ProjectRepository) Update(project *models.Project) error {
-	result := pr.Store.DB.Table("projects").Save(project).Scan(&project)
+	result := pr.DB.Table("projects").Save(project).Scan(&project)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return store.ErrRecordNotFound
 	}
@@ -67,7 +67,7 @@ func (pr *ProjectRepository) Update(project *models.Project) error {
 }
 
 func (pr *ProjectRepository) Delete(project *models.Project) error {
-	result := pr.Store.DB.Table("projects").Delete(project)
+	result := pr.DB.Table("projects").Delete(project)
 	if result.Error != nil {
 		return store.ErrRecordNotFound
 	}

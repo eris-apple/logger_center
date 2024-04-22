@@ -1,4 +1,4 @@
-package sqlstore_test
+package repository_test
 
 import (
 	"github.com/aetherteam/logger_center/internal/config"

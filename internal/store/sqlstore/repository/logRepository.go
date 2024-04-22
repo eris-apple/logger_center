@@ -1,4 +1,4 @@
-package sqlstore
+package repository
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 )
 
 type LogRepository struct {
-	Store *Store
+	DB *gorm.DB
 }
 
 func (ur *LogRepository) Create(l *models.Log) error {
@@ -24,7 +24,7 @@ func (ur *LogRepository) Create(l *models.Log) error {
 		Level:     l.Level,
 	}
 
-	result := ur.Store.DB.Table("logs").Create(&log).Scan(&l)
+	result := ur.DB.Table("logs").Create(&log).Scan(&l)
 	if result.Error != nil {
 		return store.ErrRecordNotCreated
 	}
@@ -36,7 +36,7 @@ func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) (*[]mod
 	logs := &[]models.Log{}
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := ur.Store.DB.
+	result := ur.DB.
 		Table("logs").
 		Find(&logs).
 		Offset(filter.Offset).
@@ -55,7 +55,7 @@ func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) (*[]mod
 func (ur *LogRepository) FindById(id string) (*models.Log, error) {
 	log := &models.Log{}
 
-	result := ur.Store.DB.Table("logs").Where("id = ?", id).First(log).Scan(&log)
+	result := ur.DB.Table("logs").Where("id = ?", id).First(log).Scan(&log)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
@@ -68,7 +68,7 @@ func (ur *LogRepository) FindByProjectId(id string, filter *utils.Filter) (*[]mo
 
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := ur.Store.DB.
+	result := ur.DB.
 		Table("logs").
 		Find(&logs).
 		Offset(filter.Offset).
@@ -89,7 +89,7 @@ func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[
 
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := ur.Store.DB.
+	result := ur.DB.
 		Table("logs").
 		Offset(filter.Offset).
 		Limit(filter.Limit).
@@ -106,7 +106,7 @@ func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[
 }
 
 func (ur *LogRepository) Update(log *models.Log) error {
-	result := ur.Store.DB.Table("logs").Save(log).Scan(&log)
+	result := ur.DB.Table("logs").Save(log).Scan(&log)
 	if result.Error != nil {
 		return store.ErrRecordNotUpdated
 	}
@@ -115,7 +115,7 @@ func (ur *LogRepository) Update(log *models.Log) error {
 }
 
 func (ur *LogRepository) Delete(log *models.Log) error {
-	result := ur.Store.DB.Table("logs").Delete(log)
+	result := ur.DB.Table("logs").Delete(log)
 	if result.Error != nil {
 		return store.ErrRecordNotDeleted
 	}
