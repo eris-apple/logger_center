@@ -1,0 +1,36 @@
+version: '3.1'
+services:
+  redis:
+    container_name: logger_center-redis
+    volumes:
+      - redisDB:/var/lib/redis
+    ports:
+      - '6379:6379'
+      - '8085:8001'
+    image: 'redis/redis-stack:latest'
+
+  postgres:
+    container_name: logger_center-postgres
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "logger_center"
+    volumes:
+      - postgresDB:/var/lib/postgresql/data/
+
+  adminer:
+    image: adminer
+    depends_on:
+      - postgres
+    restart: always
+    ports:
+      - "8086:8080"
+
+volumes:
+  redisDB:
+  mysqlDB:
+  postgresDB:
