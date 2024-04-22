@@ -14,8 +14,17 @@ type LogService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ls LogService) FindAll(filter *utils.Filter) (*[]models.Log, error) {
-	logs, err := ls.LogRepository.FindAll(filter)
+func (ls LogService) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, error) {
+	logs, err := ls.LogRepository.FindAll(projectID, filter)
+	if err != nil {
+		return nil, errors.New(config.ErrLogsNotFound)
+	}
+
+	return logs, nil
+}
+
+func (ls LogService) FindByProjectId(id string, filter *utils.Filter) (*[]models.Log, error) {
+	logs, err := ls.LogRepository.FindByProjectId(id, filter)
 	if err != nil {
 		return nil, errors.New(config.ErrLogsNotFound)
 	}
@@ -32,8 +41,8 @@ func (ls LogService) FindById(id string) (*models.Log, error) {
 	return log, nil
 }
 
-func (ls LogService) FindByChainId(id string) (*[]models.Log, error) {
-	logs, err := ls.LogRepository.FindByChainId(id)
+func (ls LogService) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error) {
+	logs, err := ls.LogRepository.FindByChainId(chainID, filter)
 	if err != nil {
 		return nil, errors.New(config.ErrLogNotFound)
 	}
@@ -42,6 +51,10 @@ func (ls LogService) FindByChainId(id string) (*[]models.Log, error) {
 }
 
 func (ls LogService) Create(log *models.Log) (*models.Log, error) {
+	if _, err := ls.ProjectRepository.FindById(log.ProjectID); err != nil {
+		return nil, errors.New(config.ErrProjectNotFound)
+	}
+
 	if err := ls.LogRepository.Create(log); err != nil {
 		fmt.Print(err)
 		return nil, errors.New(config.ErrInternalServerError)
@@ -68,6 +81,8 @@ func (ls LogService) Update(id string, updatedLog *models.Log) (*models.Log, err
 	if updatedLog.ProjectID == "" {
 		updatedLog.ProjectID = log.ProjectID
 	}
+
+	updatedLog.CreatedAt = log.CreatedAt
 
 	if err := ls.LogRepository.Update(updatedLog); err != nil {
 		return nil, errors.New(config.ErrInternalServerError)

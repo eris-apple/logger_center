@@ -29,13 +29,7 @@ func (pr *ProjectRepository) Create(p *models.Project) error {
 
 func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, error) {
 	project := &[]models.Project{}
-
-	if filter.Limit == 0 {
-		filter.Limit = 10
-	}
-	if filter.Order == "" {
-		filter.Order = "id desc"
-	}
+	filter = utils.GetDefaultsFilter(filter)
 
 	result := pr.Store.DB.
 		Table("projects").

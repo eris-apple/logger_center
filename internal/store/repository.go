@@ -31,9 +31,10 @@ type SessionRepository interface {
 
 type LogRepository interface {
 	Create(*models.Log) error
-	FindAll(*utils.Filter) (*[]models.Log, error)
+	FindAll(string, *utils.Filter) (*[]models.Log, error)
 	FindById(string) (*models.Log, error)
-	FindByChainId(string) (*[]models.Log, error)
+	FindByProjectId(string, *utils.Filter) (*[]models.Log, error)
+	FindByChainId(string, *utils.Filter) (*[]models.Log, error)
 	Update(*models.Log) error
 	Delete(*models.Log) error
 }

@@ -32,13 +32,7 @@ func (ur *UserRepository) Create(u *models.User) error {
 
 func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) {
 	user := &[]models.User{}
-
-	if filter.Limit == 0 {
-		filter.Limit = 10
-	}
-	if filter.Order == "" {
-		filter.Order = "id desc"
-	}
+	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.Store.DB.
 		Table("users").

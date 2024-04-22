@@ -58,9 +58,9 @@ func (s *Server) configureRouter() {
 		userHandler := rest.NewUserHandler(userService)
 
 		ug.GET("/", userHandler.FindAll)
-		ug.GET("/:id", userHandler.FindById)
-		ug.PUT("/:id", userHandler.Update)
-		ug.DELETE("/:id", userHandler.Delete)
+		ug.GET("/:user_id", userHandler.FindById)
+		ug.PUT("/:user_id", userHandler.Update)
+		ug.DELETE("/:user_id", userHandler.Delete)
 	}
 
 	ig := s.Router.Group("/identity")
@@ -85,23 +85,28 @@ func (s *Server) configureRouter() {
 		projectHandler := rest.NewProjectHandler(projectService)
 
 		pg.GET("/", projectHandler.FindAll)
-		pg.GET("/:id", projectHandler.FindById)
+		pg.GET("/:project_id", projectHandler.FindById)
 		pg.POST("/", projectHandler.Create)
-		pg.PUT("/:id", projectHandler.Update)
-		pg.DELETE("/:id", projectHandler.Delete)
+		pg.PUT("/:project_id", projectHandler.Update)
+		pg.DELETE("/:project_id", projectHandler.Delete)
 
-		lg := pg.Group("/logs")
+		lg := pg.Group("/:project_id/logs")
 		{
 			logStore := s.Store.Log()
 			logService := services.NewLogService(logStore, projectStore)
 			logHandler := rest.NewLogHandler(logService)
 
 			lg.GET("/", logHandler.FindAll)
-			lg.GET("/:id", logHandler.FindById)
+			lg.GET("/:log_id", logHandler.FindById)
 			lg.POST("/", logHandler.Create)
-			lg.PUT("/:id", logHandler.Update)
-			lg.DELETE("/:id", logHandler.Delete)
-			lg.GET("/chain/:id", logHandler.FindByChainId)
+			lg.PUT("/:log_id", logHandler.Update)
+			lg.DELETE("/:log_id", logHandler.Delete)
+
+			lcg := lg.Group("/chain")
+			{
+				lcg.GET("/:chain_id", logHandler.FindByChainId)
+
+			}
 		}
 	}
 }

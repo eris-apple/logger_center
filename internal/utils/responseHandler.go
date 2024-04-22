@@ -5,7 +5,7 @@ import (
 )
 
 func ResponseHandler(ctx *gin.Context, code int, message string, data interface{}) {
-	ctx.JSON(code, gin.H{
+	ctx.AbortWithStatusJSON(code, gin.H{
 		"status":  "success",
 		"message": message,
 		"data":    data,
@@ -13,7 +13,7 @@ func ResponseHandler(ctx *gin.Context, code int, message string, data interface{
 }
 
 func ErrorResponseHandler(ctx *gin.Context, code int, message string, error interface{}) {
-	ctx.JSON(code, gin.H{
+	ctx.AbortWithStatusJSON(code, gin.H{
 		"status":  "failed",
 		"message": message,
 		"error":   error,

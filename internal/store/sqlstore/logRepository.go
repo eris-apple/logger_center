@@ -32,15 +32,9 @@ func (ur *LogRepository) Create(l *models.Log) error {
 	return result.Error
 }
 
-func (ur *LogRepository) FindAll(filter *utils.Filter) (*[]models.Log, error) {
+func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, error) {
 	logs := &[]models.Log{}
-
-	if filter.Limit == 0 {
-		filter.Limit = 10
-	}
-	if filter.Order == "" {
-		filter.Order = "id desc"
-	}
+	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.Store.DB.
 		Table("logs").
@@ -48,6 +42,7 @@ func (ur *LogRepository) FindAll(filter *utils.Filter) (*[]models.Log, error) {
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
+		Where("project_id = ?", projectID).
 		Scan(&logs)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
@@ -68,10 +63,41 @@ func (ur *LogRepository) FindById(id string) (*models.Log, error) {
 	return log, result.Error
 }
 
-func (ur *LogRepository) FindByChainId(chainID string) (*[]models.Log, error) {
+func (ur *LogRepository) FindByProjectId(id string, filter *utils.Filter) (*[]models.Log, error) {
 	logs := &[]models.Log{}
 
-	result := ur.Store.DB.Table("logs").Where("chain_id = ?", chainID).Find(logs).Scan(&logs)
+	filter = utils.GetDefaultsFilter(filter)
+
+	result := ur.Store.DB.
+		Table("logs").
+		Find(&logs).
+		Offset(filter.Offset).
+		Limit(filter.Limit).
+		Order(filter.Order).
+		Where("project_id = ?", id).
+		Scan(&logs)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, store.ErrRecordNotFound
+	}
+
+	return logs, result.Error
+}
+
+func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error) {
+	logs := &[]models.Log{}
+
+	filter = utils.GetDefaultsFilter(filter)
+
+	result := ur.Store.DB.
+		Table("logs").
+		Offset(filter.Offset).
+		Limit(filter.Limit).
+		Order(filter.Order).
+		Where("chain_id = ?", chainID).
+		Find(logs).
+		Scan(&logs)
+
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
