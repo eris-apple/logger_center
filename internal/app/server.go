@@ -88,7 +88,21 @@ func (s *Server) configureRouter() {
 		pg.GET("/:id", projectHandler.FindById)
 		pg.POST("/", projectHandler.Create)
 		pg.PUT("/:id", projectHandler.Update)
-		//pg.DELETE("/:id", projectHandler.Create)
+		pg.DELETE("/:id", projectHandler.Delete)
+
+		lg := pg.Group("/logs")
+		{
+			logStore := s.Store.Log()
+			logService := services.NewLogService(logStore, projectStore)
+			logHandler := rest.NewLogHandler(logService)
+
+			lg.GET("/", logHandler.FindAll)
+			lg.GET("/:id", logHandler.FindById)
+			lg.POST("/", logHandler.Create)
+			lg.PUT("/:id", logHandler.Update)
+			lg.DELETE("/:id", logHandler.Delete)
+			lg.GET("/chain/:id", logHandler.FindByChainId)
+		}
 	}
 }
 
@@ -188,5 +202,7 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 		}
 
 		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config2.ErrForbiddenAccess, nil)
+		ctx.Abort()
+		return
 	}
 }

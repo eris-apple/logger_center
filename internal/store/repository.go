@@ -28,3 +28,12 @@ type SessionRepository interface {
 	FindByToken(string) (*models.Session, error)
 	Delete(*models.Session) error
 }
+
+type LogRepository interface {
+	Create(*models.Log) error
+	FindAll(*utils.Filter) (*[]models.Log, error)
+	FindById(string) (*models.Log, error)
+	FindByChainId(string) (*[]models.Log, error)
+	Update(*models.Log) error
+	Delete(*models.Log) error
+}

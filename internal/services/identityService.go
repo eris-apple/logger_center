@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
-	baseConfig "github.com/aetherteam/logger_center/internal/config"
+	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/enums"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
@@ -37,10 +37,10 @@ func (is *IdentityService) SignUp(user *models.User) (*models.User, error) {
 
 	if err := is.UserRepository.Create(user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, errors.New(baseConfig.ErrUserAlreadyExist)
+			return nil, errors.New(config.ErrUserAlreadyExist)
 		}
 
-		return nil, errors.New(baseConfig.ErrInternalServerError)
+		return nil, errors.New(config.ErrInternalServerError)
 	}
 
 	return user, nil
@@ -49,11 +49,11 @@ func (is *IdentityService) SignUp(user *models.User) (*models.User, error) {
 func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, error) {
 	user, err := is.UserRepository.FindByEmail(credentials.Email)
 	if err != nil {
-		return nil, errors.New(baseConfig.ErrIncorrectEmailOrPassword)
+		return nil, errors.New(config.ErrIncorrectEmailOrPassword)
 	}
 
 	if ch := utils.CheckHash(credentials.Password, user.Password); ch != true {
-		return nil, errors.New(baseConfig.ErrIncorrectEmailOrPassword)
+		return nil, errors.New(config.ErrIncorrectEmailOrPassword)
 	}
 
 	atTime := time.Now().Add(time.Hour * 24 * 31)
@@ -67,9 +67,9 @@ func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, er
 
 	atJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 
-	atToken, atErr := atJWT.SignedString([]byte(os.Getenv(baseConfig.EnvKeyJWTSecret)))
+	atToken, atErr := atJWT.SignedString([]byte(os.Getenv(config.EnvKeyJWTSecret)))
 	if atErr != nil {
-		fmt.Print(os.Getenv(baseConfig.EnvKeyJWTSecret))
+		fmt.Print(os.Getenv(config.EnvKeyJWTSecret))
 		fmt.Print(atErr)
 		return nil, errors.New("config.ErrInternalServerError2")
 	}
@@ -81,7 +81,7 @@ func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, er
 	}
 
 	if err := is.SessionRepository.Create(session); err != nil {
-		return nil, errors.New(baseConfig.ErrInternalServerError)
+		return nil, errors.New(config.ErrInternalServerError)
 	}
 
 	return &SingInResponse{

@@ -4,6 +4,7 @@ import (
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
 	"github.com/aetherteam/logger_center/internal/store/sqlstore"
+	"github.com/aetherteam/logger_center/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -30,7 +31,7 @@ func TestUserRepository_FindAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	users, err := s.User().FindAll()
+	users, err := s.User().FindAll(&utils.Filter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, users)
 }
@@ -78,7 +79,7 @@ func TestUserRepository_Update(t *testing.T) {
 
 	u.Email = "email2@example.com"
 
-	result, err := s.User().Update(u)
+	err := s.User().Update(u)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
+	assert.NotNil(t, u)
 }

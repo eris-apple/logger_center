@@ -38,7 +38,7 @@ func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, e
 	}
 
 	result := pr.Store.DB.
-		Table("users").
+		Table("projects").
 		Find(&project).
 		Offset(filter.Offset).
 		Limit(filter.Limit).

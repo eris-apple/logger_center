@@ -25,3 +25,9 @@ var (
 	ErrProjectNotFound  = "project not found"
 	ErrProjectsNotFound = "projects not found"
 )
+
+// Logs
+var (
+	ErrLogNotFound  = "log not found"
+	ErrLogsNotFound = "logs not found"
+)

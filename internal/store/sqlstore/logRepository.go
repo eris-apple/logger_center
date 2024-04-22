@@ -9,20 +9,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+type LogRepository struct {
 	Store *Store
 }
 
-func (ur *UserRepository) Create(u *models.User) error {
+func (ur *LogRepository) Create(l *models.Log) error {
 	id := uuid.NewV4().String()
-	user := models.User{
-		ID:       id,
-		Email:    u.Email,
-		Role:     u.Role,
-		Password: u.Password,
+
+	log := models.Log{
+		ID:        id,
+		ChainID:   l.ChainID,
+		ProjectID: l.ProjectID,
+		Content:   l.Content,
+		Level:     l.Level,
 	}
 
-	result := ur.Store.DB.Table("users").Create(&user).Scan(&u)
+	result := ur.Store.DB.Table("logs").Create(&log).Scan(&l)
 	if result.Error != nil {
 		return store.ErrRecordNotCreated
 	}
@@ -30,8 +32,8 @@ func (ur *UserRepository) Create(u *models.User) error {
 	return result.Error
 }
 
-func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) {
-	user := &[]models.User{}
+func (ur *LogRepository) FindAll(filter *utils.Filter) (*[]models.Log, error) {
+	logs := &[]models.Log{}
 
 	if filter.Limit == 0 {
 		filter.Limit = 10
@@ -41,44 +43,44 @@ func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) 
 	}
 
 	result := ur.Store.DB.
-		Table("users").
-		Find(&user).
+		Table("logs").
+		Find(&logs).
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
-		Scan(&user)
+		Scan(&logs)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return user, result.Error
+	return logs, result.Error
 }
 
-func (ur *UserRepository) FindById(id string) (*models.User, error) {
-	user := &models.User{}
+func (ur *LogRepository) FindById(id string) (*models.Log, error) {
+	log := &models.Log{}
 
-	result := ur.Store.DB.Table("users").Where("id = ?", id).First(user).Scan(&user)
+	result := ur.Store.DB.Table("logs").Where("id = ?", id).First(log).Scan(&log)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return user, result.Error
+	return log, result.Error
 }
 
-func (ur *UserRepository) FindByEmail(email string) (*models.User, error) {
-	user := &models.User{}
+func (ur *LogRepository) FindByChainId(chainID string) (*[]models.Log, error) {
+	logs := &[]models.Log{}
 
-	result := ur.Store.DB.Table("users").Where("email = ?", email).First(user).Scan(&user)
+	result := ur.Store.DB.Table("logs").Where("chain_id = ?", chainID).Find(logs).Scan(&logs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return user, result.Error
+	return logs, result.Error
 }
 
-func (ur *UserRepository) Update(user *models.User) error {
-	result := ur.Store.DB.Table("users").Save(user).Scan(&user)
+func (ur *LogRepository) Update(log *models.Log) error {
+	result := ur.Store.DB.Table("logs").Save(log).Scan(&log)
 	if result.Error != nil {
 		return store.ErrRecordNotUpdated
 	}
@@ -86,8 +88,8 @@ func (ur *UserRepository) Update(user *models.User) error {
 	return result.Error
 }
 
-func (ur *UserRepository) Delete(user *models.User) error {
-	result := ur.Store.DB.Table("users").Delete(user)
+func (ur *LogRepository) Delete(log *models.Log) error {
+	result := ur.Store.DB.Table("logs").Delete(log)
 	if result.Error != nil {
 		return store.ErrRecordNotDeleted
 	}

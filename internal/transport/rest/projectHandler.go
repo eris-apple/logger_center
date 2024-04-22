@@ -135,7 +135,7 @@ func (ph *ProjectHandler) Delete(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseHandler(ctx, http.StatusOK, config.ResProjectUpdated, nil)
+	utils.ResponseHandler(ctx, http.StatusOK, config.ResProjectDeleted, nil)
 	return
 }
 

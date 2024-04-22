@@ -10,6 +10,7 @@ type Store struct {
 	userRepository    *UserRepository
 	projectRepository *ProjectRepository
 	sessionRepository *SessionRepository
+	logRepository     *LogRepository
 }
 
 func New(db *gorm.DB) *Store {
@@ -52,4 +53,16 @@ func (s *Store) Session() store.SessionRepository {
 	}
 
 	return s.sessionRepository
+}
+
+func (s *Store) Log() store.LogRepository {
+	if s.logRepository != nil {
+		return s.logRepository
+	}
+
+	s.logRepository = &LogRepository{
+		Store: s,
+	}
+
+	return s.logRepository
 }

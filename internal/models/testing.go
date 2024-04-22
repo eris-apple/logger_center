@@ -11,6 +11,15 @@ func TestUser(t *testing.T) *User {
 	}
 }
 
+func TestLog(t *testing.T) *Log {
+	t.Helper()
+
+	return &Log{
+		Content: "Some log information",
+		Level:   "fatal",
+	}
+}
+
 func TestProject(t *testing.T) *Project {
 	t.Helper()
 

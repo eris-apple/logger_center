@@ -16,4 +16,14 @@ var (
 	ResProjectsFound  = "projects was found"
 	ResProjectCreated = "project was created"
 	ResProjectUpdated = "project was updated"
+	ResProjectDeleted = "project was deleted"
+)
+
+// Project
+var (
+	ResLogFound   = "log was found"
+	ResLogsFound  = "logs was found"
+	ResLogCreated = "log was created"
+	ResLogUpdated = "log was updated"
+	ResLogDeleted = "log was deleted"
 )

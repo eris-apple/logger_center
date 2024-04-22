@@ -3,6 +3,7 @@ package sqlstore_test
 import (
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store/sqlstore"
+	"github.com/aetherteam/logger_center/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -29,7 +30,7 @@ func TestProjectRepository_FindAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p2, err := s.Project().FindAll()
+	p2, err := s.Project().FindAll(&utils.Filter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, p2)
 }
@@ -59,7 +60,7 @@ func TestProjectRepository_Update(t *testing.T) {
 
 	p.IsActive = false
 
-	result, err := s.Project().Update(p)
+	err := s.Project().Update(p)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
+	assert.NotNil(t, p)
 }
