@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
@@ -56,7 +55,6 @@ func (ls LogService) Create(log *models.Log) (*models.Log, error) {
 	}
 
 	if err := ls.LogRepository.Create(log); err != nil {
-		fmt.Print(err)
 		return nil, errors.New(config.ErrInternalServerError)
 	}
 

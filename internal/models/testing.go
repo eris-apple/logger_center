@@ -11,6 +11,16 @@ func TestUser(t *testing.T) *User {
 	}
 }
 
+func TestSession(t *testing.T, userID string) *Session {
+	t.Helper()
+
+	return &Session{
+		Token:    "my.secret.token",
+		UserID:   userID,
+		IsActive: true,
+	}
+}
+
 func TestLog(t *testing.T) *Log {
 	t.Helper()
 
@@ -30,12 +40,12 @@ func TestProject(t *testing.T) *Project {
 	}
 }
 
-func TestSession(t *testing.T, userID string) *Session {
+func TestServiceAccount(t *testing.T) *ServiceAccount {
 	t.Helper()
 
-	return &Session{
-		Token:    "my.secret.token",
-		UserID:   userID,
+	return &ServiceAccount{
+		Name:     "test account",
+		Secret:   "some secret",
 		IsActive: true,
 	}
 }

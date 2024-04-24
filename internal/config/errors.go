@@ -31,3 +31,9 @@ var (
 	ErrLogNotFound  = "log not found"
 	ErrLogsNotFound = "logs not found"
 )
+
+// Logs
+var (
+	ErrServiceAccountsNotFound = "service accounts not found"
+	ErrServiceAccountNotFound  = "service account not found"
+)

@@ -9,9 +9,10 @@ import (
 type Store struct {
 	DB                *gorm.DB
 	userRepository    *repository.UserRepository
-	projectRepository *repository.ProjectRepository
 	sessionRepository *repository.SessionRepository
+	projectRepository *repository.ProjectRepository
 	logRepository     *repository.LogRepository
+	serviceAccount    *repository.ServiceAccountRepository
 }
 
 func New(db *gorm.DB) *Store {
@@ -32,18 +33,6 @@ func (s *Store) User() store.UserRepository {
 	return s.userRepository
 }
 
-func (s *Store) Project() store.ProjectRepository {
-	if s.projectRepository != nil {
-		return s.projectRepository
-	}
-
-	s.projectRepository = &repository.ProjectRepository{
-		DB: s.DB,
-	}
-
-	return s.projectRepository
-}
-
 func (s *Store) Session() store.SessionRepository {
 	if s.sessionRepository != nil {
 		return s.sessionRepository
@@ -56,6 +45,18 @@ func (s *Store) Session() store.SessionRepository {
 	return s.sessionRepository
 }
 
+func (s *Store) Project() store.ProjectRepository {
+	if s.projectRepository != nil {
+		return s.projectRepository
+	}
+
+	s.projectRepository = &repository.ProjectRepository{
+		DB: s.DB,
+	}
+
+	return s.projectRepository
+}
+
 func (s *Store) Log() store.LogRepository {
 	if s.logRepository != nil {
 		return s.logRepository
@@ -66,4 +67,16 @@ func (s *Store) Log() store.LogRepository {
 	}
 
 	return s.logRepository
+}
+
+func (s *Store) ServiceAccount() store.ServiceAccountRepository {
+	if s.serviceAccount != nil {
+		return s.serviceAccount
+	}
+
+	s.serviceAccount = &repository.ServiceAccountRepository{
+		DB: s.DB,
+	}
+
+	return s.serviceAccount
 }

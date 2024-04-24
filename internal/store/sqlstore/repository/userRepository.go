@@ -13,23 +13,6 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-func (ur *UserRepository) Create(u *models.User) error {
-	id := uuid.NewV4().String()
-	user := models.User{
-		ID:       id,
-		Email:    u.Email,
-		Role:     u.Role,
-		Password: u.Password,
-	}
-
-	result := ur.DB.Table("users").Create(&user).Scan(&u)
-	if result.Error != nil {
-		return store.ErrRecordNotCreated
-	}
-
-	return result.Error
-}
-
 func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) {
 	user := &[]models.User{}
 	filter = utils.GetDefaultsFilter(filter)
@@ -69,6 +52,23 @@ func (ur *UserRepository) FindByEmail(email string) (*models.User, error) {
 	}
 
 	return user, result.Error
+}
+
+func (ur *UserRepository) Create(u *models.User) error {
+	id := uuid.NewV4().String()
+	user := models.User{
+		ID:       id,
+		Email:    u.Email,
+		Role:     u.Role,
+		Password: u.Password,
+	}
+
+	result := ur.DB.Table("users").Create(&user).Scan(&u)
+	if result.Error != nil {
+		return store.ErrRecordNotCreated
+	}
+
+	return result.Error
 }
 
 func (ur *UserRepository) Update(user *models.User) error {

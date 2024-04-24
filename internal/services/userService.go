@@ -6,6 +6,7 @@ import (
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
 	"github.com/aetherteam/logger_center/internal/utils"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"time"
 )
 
@@ -34,19 +35,15 @@ func (us UserService) FindById(id string) (*models.User, error) {
 func (us UserService) Update(id string, updatedUser *models.User) (*models.User, error) {
 	user, _ := us.FindById(id)
 
-	if updatedUser.Password == "" {
+	if validation.IsEmpty(updatedUser.Password) {
 		updatedUser.Password = user.Password
 	}
 
-	if updatedUser.Email == "" {
+	if validation.IsEmpty(updatedUser.Email) {
 		updatedUser.Email = user.Email
 	}
 
-	if updatedUser.Email == "" {
-		updatedUser.Email = user.Email
-	}
-
-	if updatedUser.Role == "" {
+	if validation.IsEmpty(updatedUser.Role) {
 		updatedUser.Role = user.Role
 	}
 
