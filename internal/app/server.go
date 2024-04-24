@@ -108,6 +108,19 @@ func (s *Server) configureRouter() {
 
 			}
 		}
+
+		sag := pg.Group("/:project_id/service_account")
+		{
+			serviceAccountStore := s.Store.ServiceAccount()
+			serviceAccountService := services.NewServiceAccountService(serviceAccountStore, projectService)
+			serviceAccountHandler := rest.NewServiceAccountHandler(serviceAccountService)
+
+			sag.GET("/", serviceAccountHandler.FindAll)
+			sag.GET("/:service_account_id", serviceAccountHandler.FindById)
+			sag.POST("/", serviceAccountHandler.Create)
+			sag.PUT("/:service_account_id", serviceAccountHandler.Update)
+			sag.DELETE("/:service_account_id", serviceAccountHandler.Delete)
+		}
 	}
 }
 

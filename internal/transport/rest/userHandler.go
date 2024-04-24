@@ -29,7 +29,9 @@ func (uuDTO *updateUserDTO) Validate() error {
 }
 
 func (uh *UserHandler) FindAll(ctx *gin.Context) {
-	users, err := uh.UserService.FindAll(&utils.Filter{})
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+
+	users, err := uh.UserService.FindAll(filter)
 	if err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
 		return
@@ -47,7 +49,7 @@ func (uh *UserHandler) FindAll(ctx *gin.Context) {
 }
 
 func (uh *UserHandler) FindById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("user_id")
 
 	user, err := uh.UserService.FindById(id)
 	if err != nil {
@@ -75,7 +77,7 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	id := ctx.Param("id")
+	id := ctx.Param("user_id")
 	user := ctx.Value("user").(*models.User)
 
 	if id != user.ID && (user.Role != enums.Admin.String() || user.Role != enums.Moderator.String()) {
@@ -102,7 +104,7 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 }
 
 func (uh *UserHandler) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("user_id")
 	user := ctx.Value("user").(*models.User)
 	if id != user.ID && (user.Role != enums.Admin.String() || user.Role != enums.Moderator.String()) {
 		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)

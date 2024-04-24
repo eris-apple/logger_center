@@ -27,3 +27,12 @@ var (
 	ResLogUpdated = "log was updated"
 	ResLogDeleted = "log was deleted"
 )
+
+// Project
+var (
+	ResServiceAccountFound   = "service account was found"
+	ResServiceAccountsFound  = "service accounts was found"
+	ResServiceAccountCreated = "service account was created"
+	ResServiceAccountUpdated = "service account was updated"
+	ResServiceAccountDeleted = "service account was deleted"
+)
