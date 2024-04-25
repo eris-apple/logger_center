@@ -47,6 +47,10 @@ func (us UserService) Update(id string, updatedUser *models.User) (*models.User,
 		updatedUser.Role = user.Role
 	}
 
+	if validation.IsEmpty(updatedUser.Status) {
+		updatedUser.Status = user.Status
+	}
+
 	updatedUser.UpdatedAt = time.Now()
 
 	if err := us.UserRepository.Update(updatedUser); err != nil {

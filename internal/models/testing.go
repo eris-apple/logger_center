@@ -1,6 +1,9 @@
 package models
 
-import "testing"
+import (
+	"github.com/aetherteam/logger_center/internal/enums"
+	"testing"
+)
 
 func TestUser(t *testing.T) *User {
 	t.Helper()
@@ -8,6 +11,7 @@ func TestUser(t *testing.T) *User {
 	return &User{
 		Email:    "user@example.org",
 		Password: "password",
+		Status:   enums.Pending.String(),
 	}
 }
 

@@ -60,6 +60,7 @@ func (ur *UserRepository) Create(u *models.User) error {
 		ID:       id,
 		Email:    u.Email,
 		Role:     u.Role,
+		Status:   u.Status,
 		Password: u.Password,
 	}
 

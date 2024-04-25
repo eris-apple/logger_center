@@ -13,6 +13,9 @@ var (
 	ErrUsersNotFound            = "users not found"
 	ErrUserAlreadyExist         = "user with this email already exist"
 	ErrIncorrectEmailOrPassword = "incorrect email or password"
+	ErrUserNotModerated         = "user not moderated"
+	ErrUserDeclined             = "user was declined"
+	ErrUserBanned               = "user was banned"
 )
 
 // Sessions

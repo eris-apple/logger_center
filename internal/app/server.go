@@ -1,7 +1,7 @@
 package app
 
 import (
-	config2 "github.com/aetherteam/logger_center/internal/config"
+	config "github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/enums"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/services"
@@ -24,7 +24,7 @@ type Server struct {
 	Redis  *redis2.Client
 }
 
-func newServer(config *config2.Config, store store.Store) *Server {
+func newServer(config *config.Config, store store.Store) *Server {
 	s := &Server{
 		Router: gin.New(),
 		Store:  store,
@@ -166,34 +166,52 @@ func (s *Server) AuthRequired() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config2.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess, nil)
 			ctx.Abort()
 			return
 		}
 
 		authHeaderArray := strings.Split(authHeader, " ")
 		if len(authHeaderArray) != 2 {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config2.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess, nil)
 			ctx.Abort()
 			return
 		}
 
 		ss, SSErr := s.Store.Session().FindByToken(authHeaderArray[1])
 		if SSErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config2.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess, nil)
 			ctx.Abort()
 			return
 		}
 
 		if ss.IsActive == false {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config2.ErrSessionExpired, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrSessionExpired, nil)
 			ctx.Abort()
 			return
 		}
 
 		user, UErr := s.Store.User().FindById(ss.UserID)
 		if UErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config2.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess, nil)
+			ctx.Abort()
+			return
+		}
+
+		if user.Status == enums.Pending.String() {
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserNotModerated, nil)
+			ctx.Abort()
+			return
+		}
+
+		if user.Status == enums.Declined.String() {
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserDeclined, nil)
+			ctx.Abort()
+			return
+		}
+
+		if user.Status == enums.Banned.String() {
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserBanned, nil)
 			ctx.Abort()
 			return
 		}
@@ -209,7 +227,7 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := ctx.Value("user").(*models.User)
 		if user == nil {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config2.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)
 		}
 
 		for _, role := range roles {
@@ -219,7 +237,7 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 			}
 		}
 
-		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config2.ErrForbiddenAccess, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)
 		ctx.Abort()
 		return
 	}

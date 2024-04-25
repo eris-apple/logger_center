@@ -18,7 +18,9 @@ type UserHandler struct {
 }
 
 type updateUserDTO struct {
-	Email string `json:"email"`
+	Email  string `json:"email"`
+	Status string `json:"status"`
+	Role   string `json:"role"`
 }
 
 func (uuDTO *updateUserDTO) Validate() error {
@@ -79,8 +81,15 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 
 	id := ctx.Param("user_id")
 	user := ctx.Value("user").(*models.User)
+	isUserAdmin := user.Role == enums.Admin.String()
+	isUserModerator := user.Role == enums.Moderator.String()
 
-	if id != user.ID && (user.Role != enums.Admin.String() || user.Role != enums.Moderator.String()) {
+	if id != user.ID && !(isUserAdmin || isUserModerator) {
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess, nil)
+		return
+	}
+
+	if (!validation.IsEmpty(body.Role) || !validation.IsEmpty(body.Status)) && !(isUserAdmin || isUserModerator) {
 		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess, nil)
 		return
 	}
