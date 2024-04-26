@@ -36,7 +36,7 @@ func GetDefaultsFilterFromQuery(ctx *gin.Context) *Filter {
 	if limit != "" {
 		li, err := strconv.Atoi(limit)
 		if err != nil {
-			ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrBadRequest, nil)
+			ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrBadRequest)
 			return nil
 		}
 		limitInt = li
@@ -45,7 +45,7 @@ func GetDefaultsFilterFromQuery(ctx *gin.Context) *Filter {
 	if offset != "" {
 		oi, err := strconv.Atoi(offset)
 		if err != nil {
-			ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrBadRequest, nil)
+			ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrBadRequest)
 			return nil
 		}
 		offsetInt = oi

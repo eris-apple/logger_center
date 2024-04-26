@@ -34,7 +34,7 @@ func (sDTO *createProjectDTO) Validate() error {
 func (ph *ProjectHandler) FindAll(ctx *gin.Context) {
 	projects, err := ph.ProjectService.FindAll(&utils.Filter{})
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (ph *ProjectHandler) FindById(ctx *gin.Context) {
 
 	project, err := ph.ProjectService.FindById(id)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -60,13 +60,13 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		fmt.Print(err)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, err)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 
 	result, err := ph.ProjectService.Create(project)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -90,14 +90,14 @@ func (ph *ProjectHandler) Update(ctx *gin.Context) {
 	var body createProjectDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, err)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	ID := ctx.Param("id")
 	fResult, FErr := ph.ProjectService.FindById(ID)
 	if FErr != nil || fResult == nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrProjectNotFound, FErr)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrProjectNotFound)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (ph *ProjectHandler) Update(ctx *gin.Context) {
 
 	uResult, UErr := ph.ProjectService.Update(&project)
 	if UErr != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, UErr.Error(), UErr)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, UErr)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (ph *ProjectHandler) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	if err := ph.ProjectService.Delete(&models.Project{ID: id}); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

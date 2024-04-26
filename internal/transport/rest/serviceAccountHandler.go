@@ -31,7 +31,7 @@ func (sah *ServiceAccountHandler) FindAll(ctx *gin.Context) {
 
 	sAccounts, err := sah.ServiceAccountService.FindAll(filter)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (sah *ServiceAccountHandler) FindById(ctx *gin.Context) {
 
 	sAccount, err := sah.ServiceAccountService.FindById(id)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -66,13 +66,13 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 	var body updateAccountServiceDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 
 	result, err := sah.ServiceAccountService.Create(&log)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -100,17 +100,17 @@ func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
 	var body updateAccountServiceDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
-	id := ctx.Param("account_service_id")
+	id := ctx.Param("service_account_id")
 
 	updatedServiceAccount := models.ServiceAccount{
 		ID:        id,
@@ -121,7 +121,7 @@ func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
 
 	result, err := sah.ServiceAccountService.Update(id, &updatedServiceAccount)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (sah *ServiceAccountHandler) Delete(ctx *gin.Context) {
 	id := ctx.Param("service_account_id")
 
 	if err := sah.ServiceAccountService.Delete(id); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

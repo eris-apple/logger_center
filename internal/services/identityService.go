@@ -29,7 +29,7 @@ type SingInResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func (is *IdentityService) SignUp(user *models.User) (*models.User, error) {
+func (is *IdentityService) SignUp(user *models.User) (*models.User, *config.APIError) {
 	password, _ := utils.HashString(user.Password)
 
 	user.Password = password
@@ -37,23 +37,23 @@ func (is *IdentityService) SignUp(user *models.User) (*models.User, error) {
 
 	if err := is.UserRepository.Create(user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, errors.New(config.ErrUserAlreadyExist)
+			return nil, config.ErrUserAlreadyExist
 		}
 
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return user, nil
 }
 
-func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, error) {
+func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, *config.APIError) {
 	user, err := is.UserRepository.FindByEmail(credentials.Email)
 	if err != nil {
-		return nil, errors.New(config.ErrIncorrectEmailOrPassword)
+		return nil, config.ErrIncorrectEmailOrPassword
 	}
 
 	if ch := utils.CheckHash(credentials.Password, user.Password); ch != true {
-		return nil, errors.New(config.ErrIncorrectEmailOrPassword)
+		return nil, config.ErrIncorrectEmailOrPassword
 	}
 
 	atTime := time.Now().Add(time.Hour * 24 * 31)
@@ -71,7 +71,7 @@ func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, er
 	if atErr != nil {
 		fmt.Print(os.Getenv(config.EnvKeyJWTSecret))
 		fmt.Print(atErr)
-		return nil, errors.New("config.ErrInternalServerError2")
+		return nil, config.ErrInternalServerError
 	}
 
 	session := &models.Session{
@@ -81,7 +81,7 @@ func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, er
 	}
 
 	if err := is.SessionRepository.Create(session); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return &SingInResponse{

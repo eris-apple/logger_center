@@ -13,51 +13,51 @@ type ProjectService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ps *ProjectService) FindAll(filter *utils.Filter) (*[]models.Project, error) {
+func (ps *ProjectService) FindAll(filter *utils.Filter) (*[]models.Project, *config.APIError) {
 	projects, err := ps.ProjectRepository.FindAll(filter)
 	if err != nil {
-		return nil, errors.New(config.ErrUsersNotFound)
+		return nil, config.ErrUsersNotFound
 	}
 
 	return projects, nil
 }
 
-func (ps *ProjectService) FindById(id string) (*models.Project, error) {
+func (ps *ProjectService) FindById(id string) (*models.Project, *config.APIError) {
 	project, err := ps.ProjectRepository.FindById(id)
 	if err != nil {
-		return nil, errors.New(config.ErrUsersNotFound)
+		return nil, config.ErrUsersNotFound
 	}
 
 	return project, nil
 }
 
-func (ps ProjectService) Create(project *models.Project) (*models.Project, error) {
+func (ps ProjectService) Create(project *models.Project) (*models.Project, *config.APIError) {
 	if err := ps.ProjectRepository.Create(project); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, errors.New(config.ErrUserAlreadyExist)
+			return nil, config.ErrUserAlreadyExist
 		}
 
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return project, nil
 }
 
-func (ps ProjectService) Update(project *models.Project) (*models.Project, error) {
+func (ps ProjectService) Update(project *models.Project) (*models.Project, *config.APIError) {
 	_, _ = ps.FindById(project.ID)
 
 	if err := ps.ProjectRepository.Update(project); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return project, nil
 }
 
-func (ps ProjectService) Delete(project *models.Project) error {
+func (ps ProjectService) Delete(project *models.Project) *config.APIError {
 	_, _ = ps.FindById(project.ID)
 
 	if err := ps.ProjectRepository.Delete(project); err != nil {
-		return errors.New(config.ErrInternalServerError)
+		return config.ErrInternalServerError
 	}
 
 	return nil

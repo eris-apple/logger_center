@@ -7,6 +7,7 @@ import (
 	"github.com/aetherteam/logger_center/internal/services"
 	"github.com/aetherteam/logger_center/internal/store"
 	"github.com/aetherteam/logger_center/internal/transport/rest"
+	"github.com/aetherteam/logger_center/internal/transport/ws"
 	"github.com/aetherteam/logger_center/internal/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,8 @@ func (s *Server) configureRouter() {
 	s.Router.Use(cors.New(cors.Config{AllowAllOrigins: true}))
 	s.Router.Use(s.setRequestID())
 	s.Router.Use(s.logger())
+
+	s.Router.Handle("GET", "/ws", ws.WSHandler(s.Store))
 	s.Router.Handle("GET", "/", HealthCheckHandler)
 
 	ug := s.Router.Group("/users")
@@ -109,7 +112,7 @@ func (s *Server) configureRouter() {
 			}
 		}
 
-		sag := pg.Group("/:project_id/service_account")
+		sag := pg.Group("/:project_id/service-account")
 		{
 			serviceAccountStore := s.Store.ServiceAccount()
 			serviceAccountService := services.NewServiceAccountService(serviceAccountStore, projectService)
@@ -166,52 +169,52 @@ func (s *Server) AuthRequired() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess)
 			ctx.Abort()
 			return
 		}
 
 		authHeaderArray := strings.Split(authHeader, " ")
 		if len(authHeaderArray) != 2 {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrForbiddenAccess)
 			ctx.Abort()
 			return
 		}
 
 		ss, SSErr := s.Store.Session().FindByToken(authHeaderArray[1])
 		if SSErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess)
 			ctx.Abort()
 			return
 		}
 
 		if ss.IsActive == false {
-			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrSessionExpired, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrSessionExpired)
 			ctx.Abort()
 			return
 		}
 
 		user, UErr := s.Store.User().FindById(ss.UserID)
 		if UErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess)
 			ctx.Abort()
 			return
 		}
 
 		if user.Status == enums.Pending.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserNotModerated, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserNotModerated)
 			ctx.Abort()
 			return
 		}
 
 		if user.Status == enums.Declined.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserDeclined, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserDeclined)
 			ctx.Abort()
 			return
 		}
 
 		if user.Status == enums.Banned.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserBanned, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserBanned)
 			ctx.Abort()
 			return
 		}
@@ -227,7 +230,7 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := ctx.Value("user").(*models.User)
 		if user == nil {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)
+			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess)
 		}
 
 		for _, role := range roles {
@@ -237,7 +240,7 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 			}
 		}
 
-		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess)
 		ctx.Abort()
 		return
 	}

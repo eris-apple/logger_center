@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
@@ -13,55 +12,55 @@ type LogService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ls LogService) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, error) {
+func (ls LogService) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
 	logs, err := ls.LogRepository.FindAll(projectID, filter)
 	if err != nil {
-		return nil, errors.New(config.ErrLogsNotFound)
+		return nil, config.ErrLogsNotFound
 	}
 
 	return logs, nil
 }
 
-func (ls LogService) FindByProjectId(id string, filter *utils.Filter) (*[]models.Log, error) {
+func (ls LogService) FindByProjectId(id string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
 	logs, err := ls.LogRepository.FindByProjectId(id, filter)
 	if err != nil {
-		return nil, errors.New(config.ErrLogsNotFound)
+		return nil, config.ErrLogsNotFound
 	}
 
 	return logs, nil
 }
 
-func (ls LogService) FindById(id string) (*models.Log, error) {
+func (ls LogService) FindById(id string) (*models.Log, *config.APIError) {
 	log, err := ls.LogRepository.FindById(id)
 	if err != nil {
-		return nil, errors.New(config.ErrLogNotFound)
+		return nil, config.ErrLogNotFound
 	}
 
 	return log, nil
 }
 
-func (ls LogService) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error) {
+func (ls LogService) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
 	logs, err := ls.LogRepository.FindByChainId(chainID, filter)
 	if err != nil {
-		return nil, errors.New(config.ErrLogNotFound)
+		return nil, config.ErrLogNotFound
 	}
 
 	return logs, nil
 }
 
-func (ls LogService) Create(log *models.Log) (*models.Log, error) {
+func (ls LogService) Create(log *models.Log) (*models.Log, *config.APIError) {
 	if _, err := ls.ProjectRepository.FindById(log.ProjectID); err != nil {
-		return nil, errors.New(config.ErrProjectNotFound)
+		return nil, config.ErrProjectNotFound
 	}
 
 	if err := ls.LogRepository.Create(log); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return log, nil
 }
 
-func (ls LogService) Update(id string, updatedLog *models.Log) (*models.Log, error) {
+func (ls LogService) Update(id string, updatedLog *models.Log) (*models.Log, *config.APIError) {
 	log, _ := ls.FindById(id)
 
 	if updatedLog.Content == "" {
@@ -83,17 +82,17 @@ func (ls LogService) Update(id string, updatedLog *models.Log) (*models.Log, err
 	updatedLog.CreatedAt = log.CreatedAt
 
 	if err := ls.LogRepository.Update(updatedLog); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return updatedLog, nil
 }
 
-func (ls LogService) Delete(id string) error {
+func (ls LogService) Delete(id string) *config.APIError {
 	log, _ := ls.FindById(id)
 
 	if err := ls.LogRepository.Delete(log); err != nil {
-		return errors.New(config.ErrInternalServerError)
+		return config.ErrInternalServerError
 	}
 
 	return nil

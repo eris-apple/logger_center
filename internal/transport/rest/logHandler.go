@@ -37,14 +37,14 @@ func (clDTO *createLogDTO) Validate() error {
 func (lh *LogHandler) FindAll(ctx *gin.Context) {
 	projectID := ctx.Param("project_id")
 	if projectID == "" {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
 	logs, err := lh.LogService.FindAll(projectID, filter)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (lh *LogHandler) FindByProjectId(ctx *gin.Context) {
 
 	log, err := lh.LogService.FindByProjectId(projectID, filter)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -71,7 +71,7 @@ func (lh *LogHandler) FindById(ctx *gin.Context) {
 
 	log, err := lh.LogService.FindById(logID)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (lh *LogHandler) FindByChainId(ctx *gin.Context) {
 
 	logs, err := lh.LogService.FindByChainId(chainID, filter)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -98,13 +98,13 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 	var body createLogDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 
 	result, err := lh.LogService.Create(&log)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (lh *LogHandler) Update(ctx *gin.Context) {
 	var body updateLogDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -147,7 +147,7 @@ func (lh *LogHandler) Update(ctx *gin.Context) {
 
 	result, err := lh.LogService.Update(id, &updatedLog)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -159,7 +159,7 @@ func (lh *LogHandler) Delete(ctx *gin.Context) {
 	id := ctx.Param("log_id")
 
 	if err := lh.LogService.Delete(id); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

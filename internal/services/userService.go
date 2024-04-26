@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
@@ -14,25 +13,25 @@ type UserService struct {
 	UserRepository store.UserRepository
 }
 
-func (us UserService) FindAll(filter *utils.Filter) (*[]models.User, error) {
+func (us UserService) FindAll(filter *utils.Filter) (*[]models.User, *config.APIError) {
 	users, err := us.UserRepository.FindAll(filter)
 	if err != nil {
-		return nil, errors.New(config.ErrUsersNotFound)
+		return nil, config.ErrUsersNotFound
 	}
 
 	return users, nil
 }
 
-func (us UserService) FindById(id string) (*models.User, error) {
+func (us UserService) FindById(id string) (*models.User, *config.APIError) {
 	user, err := us.UserRepository.FindById(id)
 	if err != nil {
-		return nil, errors.New(config.ErrUserNotFound)
+		return nil, config.ErrUserNotFound
 	}
 
 	return user, nil
 }
 
-func (us UserService) Update(id string, updatedUser *models.User) (*models.User, error) {
+func (us UserService) Update(id string, updatedUser *models.User) (*models.User, *config.APIError) {
 	user, _ := us.FindById(id)
 
 	if validation.IsEmpty(updatedUser.Password) {
@@ -54,17 +53,17 @@ func (us UserService) Update(id string, updatedUser *models.User) (*models.User,
 	updatedUser.UpdatedAt = time.Now()
 
 	if err := us.UserRepository.Update(updatedUser); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return updatedUser, nil
 }
 
-func (us UserService) Delete(id string) error {
+func (us UserService) Delete(id string) *config.APIError {
 	user, _ := us.FindById(id)
 
 	if err := us.UserRepository.Delete(user); err != nil {
-		return errors.New(config.ErrInternalServerError)
+		return config.ErrInternalServerError
 	}
 
 	return nil

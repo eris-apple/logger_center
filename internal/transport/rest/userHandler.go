@@ -35,7 +35,7 @@ func (uh *UserHandler) FindAll(ctx *gin.Context) {
 
 	users, err := uh.UserService.FindAll(filter)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (uh *UserHandler) FindById(ctx *gin.Context) {
 
 	user, err := uh.UserService.FindById(id)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
 
@@ -69,13 +69,13 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 	var body updateUserDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
@@ -85,12 +85,12 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 	isUserModerator := user.Role == enums.Moderator.String()
 
 	if id != user.ID && !(isUserAdmin || isUserModerator) {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess)
 		return
 	}
 
 	if (!validation.IsEmpty(body.Role) || !validation.IsEmpty(body.Status)) && !(isUserAdmin || isUserModerator) {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, config.ErrForbiddenAccess)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (uh *UserHandler) Update(ctx *gin.Context) {
 
 	result, err := uh.UserService.Update(id, &updatedUser)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -116,12 +116,12 @@ func (uh *UserHandler) Delete(ctx *gin.Context) {
 	id := ctx.Param("user_id")
 	user := ctx.Value("user").(*models.User)
 	if id != user.ID && (user.Role != enums.Admin.String() || user.Role != enums.Moderator.String()) {
-		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess)
 		return
 	}
 
 	if err := uh.UserService.Delete(id); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 

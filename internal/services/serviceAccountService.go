@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/store"
@@ -15,57 +14,66 @@ type ServiceAccountService struct {
 	ProjectService           ProjectService
 }
 
-func (sas *ServiceAccountService) FindAll(filter *utils.Filter) (*[]models.ServiceAccount, error) {
+func (sas *ServiceAccountService) FindAll(filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
 	sAccounts, err := sas.ServiceAccountRepository.FindAll(filter)
 	if err != nil {
-		return nil, errors.New(config.ErrServiceAccountsNotFound)
+		return nil, config.ErrServiceAccountsNotFound
 	}
 
 	return sAccounts, nil
 }
 
-func (sas *ServiceAccountService) FindById(id string) (*models.ServiceAccount, error) {
+func (sas *ServiceAccountService) FindById(id string) (*models.ServiceAccount, *config.APIError) {
 	sAccount, err := sas.ServiceAccountRepository.FindById(id)
 	if err != nil {
-		return nil, errors.New(config.ErrUserNotFound)
+		return nil, config.ErrServiceAccountNotFound
 	}
 
 	return sAccount, nil
 }
 
-func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAccount, error) {
+func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAccount, *config.APIError) {
 	sAccount, err := sas.ServiceAccountRepository.FindBySecret(secret)
 	if err != nil {
-		return nil, errors.New(config.ErrUserNotFound)
+		return nil, config.ErrServiceAccountNotFound
 	}
 
 	return sAccount, nil
 }
 
-func (sas *ServiceAccountService) FindByProjectId(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
-	_, _ = sas.ProjectService.FindById(projectID)
+func (sas *ServiceAccountService) FindByProjectId(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
+	_, projectErr := sas.ProjectService.FindById(projectID)
+	if projectErr != nil {
+		return nil, config.ErrProjectNotFound
+	}
 
 	sAccounts, err := sas.ServiceAccountRepository.FindByProjectId(projectID, filter)
 	if err != nil {
-		return nil, errors.New(config.ErrUserNotFound)
+		return nil, config.ErrUserNotFound
 	}
 
 	return sAccounts, nil
 }
 
-func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*models.ServiceAccount, error) {
-	_, _ = sas.ProjectService.FindById(sAccount.ProjectID)
+func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*models.ServiceAccount, *config.APIError) {
+	_, projectErr := sas.ProjectService.FindById(sAccount.ProjectID)
+	if projectErr != nil {
+		return nil, config.ErrProjectNotFound
+	}
 
 	if err := sas.ServiceAccountRepository.Create(sAccount); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return sAccount, nil
 
 }
 
-func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) (*models.ServiceAccount, error) {
-	sAccount, _ := sas.ServiceAccountRepository.FindById(id)
+func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) (*models.ServiceAccount, *config.APIError) {
+	sAccount, err := sas.FindById(id)
+	if err != nil {
+		return nil, config.ErrServiceAccountNotFound
+	}
 
 	if validation.IsEmpty(usa.ProjectID) {
 		usa.ProjectID = sAccount.ProjectID
@@ -90,17 +98,20 @@ func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) 
 	usa.UpdatedAt = time.Now()
 
 	if err := sas.ServiceAccountRepository.Update(usa); err != nil {
-		return nil, errors.New(config.ErrInternalServerError)
+		return nil, config.ErrInternalServerError
 	}
 
 	return usa, nil
 }
 
-func (sas *ServiceAccountService) Delete(id string) error {
-	user, _ := sas.FindById(id)
+func (sas *ServiceAccountService) Delete(id string) *config.APIError {
+	sAccount, err := sas.FindById(id)
+	if err != nil {
+		return config.ErrServiceAccountNotFound
+	}
 
-	if err := sas.ServiceAccountRepository.Delete(user); err != nil {
-		return errors.New(config.ErrInternalServerError)
+	if err := sas.ServiceAccountRepository.Delete(sAccount); err != nil {
+		return config.ErrInternalServerError
 	}
 
 	return nil

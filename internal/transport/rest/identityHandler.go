@@ -24,7 +24,7 @@ func (sDTO *signDTO) Validate() error {
 	return validation.ValidateStruct(
 		sDTO,
 		validation.Field(&sDTO.Email, validation.Required, is.Email),
-		validation.Field(&sDTO.Password, validation.Length(8, 32)),
+		validation.Field(&sDTO.Password, validation.Required, validation.Length(8, 32)),
 	)
 }
 
@@ -32,13 +32,13 @@ func (ih *IdentityHandler) SignUp(ctx *gin.Context) {
 	var body signDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (ih *IdentityHandler) SignUp(ctx *gin.Context) {
 
 	cu, err := ih.IdentityService.SignUp(user)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -63,20 +63,20 @@ func (ih *IdentityHandler) SignIn(ctx *gin.Context) {
 	var body signDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, nil)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
 	if err := body.Validate(); err != nil {
 		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
 		return
 	}
 
 	credentials := &models.User{Email: body.Email, Password: body.Password}
 	user, err := ih.IdentityService.SignIn(credentials)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err.Error(), err)
+		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
