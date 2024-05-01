@@ -21,6 +21,7 @@ func (ur *LogRepository) Create(l *models.Log) error {
 		ChainID:   l.ChainID,
 		ProjectID: l.ProjectID,
 		Content:   l.Content,
+		Timestamp: l.Timestamp,
 		Level:     l.Level,
 	}
 

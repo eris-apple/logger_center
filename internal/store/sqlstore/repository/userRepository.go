@@ -13,7 +13,7 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) {
+func (ur *UserRepository) Search(filter *utils.Filter, queryString string) (*[]models.User, error) {
 	user := &[]models.User{}
 	filter = utils.GetDefaultsFilter(filter)
 
@@ -23,6 +23,27 @@ func (ur *UserRepository) FindAll(filter *utils.Filter) (*[]models.User, error) 
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
+		Where("email LIKE ?", "%"+queryString+"%").
+		Scan(&user)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
+		return nil, store.ErrRecordNotFound
+	}
+
+	return user, result.Error
+}
+
+func (ur *UserRepository) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.User, error) {
+	user := &[]models.User{}
+	filter = utils.GetDefaultsFilter(filter)
+
+	result := ur.DB.
+		Table("users").
+		Find(&user).
+		Offset(filter.Offset).
+		Limit(filter.Limit).
+		Order(filter.Order).
+		Where(where).
 		Scan(&user)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {

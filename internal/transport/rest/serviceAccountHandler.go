@@ -29,11 +29,7 @@ func (uasDTO *updateAccountServiceDTO) Validate() error {
 func (sah *ServiceAccountHandler) FindAll(ctx *gin.Context) {
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	sAccounts, err := sah.ServiceAccountService.FindAll(filter)
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
-		return
-	}
+	sAccounts, _ := sah.ServiceAccountService.FindAll(filter)
 
 	var sanitizedServiceAccounts []models.ServiceAccount
 

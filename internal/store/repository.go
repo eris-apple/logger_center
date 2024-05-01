@@ -7,7 +7,8 @@ import (
 
 type UserRepository interface {
 	Create(*models.User) error
-	FindAll(*utils.Filter) (*[]models.User, error)
+	Search(*utils.Filter, string) (*[]models.User, error)
+	FindAll(*utils.Filter, map[string]interface{}) (*[]models.User, error)
 	FindById(string) (*models.User, error)
 	FindByEmail(string) (*models.User, error)
 	Update(*models.User) error

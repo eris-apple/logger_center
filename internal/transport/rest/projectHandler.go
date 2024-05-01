@@ -32,18 +32,14 @@ func (sDTO *createProjectDTO) Validate() error {
 }
 
 func (ph *ProjectHandler) FindAll(ctx *gin.Context) {
-	projects, err := ph.ProjectService.FindAll(&utils.Filter{})
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
-		return
-	}
+	projects, _ := ph.ProjectService.FindAll(&utils.Filter{})
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResProjectsFound, projects)
 	return
 }
 
 func (ph *ProjectHandler) FindById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("project_id")
 
 	project, err := ph.ProjectService.FindById(id)
 	if err != nil {
@@ -94,7 +90,7 @@ func (ph *ProjectHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	ID := ctx.Param("id")
+	ID := ctx.Param("project_id")
 	fResult, FErr := ph.ProjectService.FindById(ID)
 	if FErr != nil || fResult == nil {
 		utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrProjectNotFound)
@@ -128,7 +124,7 @@ func (ph *ProjectHandler) Update(ctx *gin.Context) {
 }
 
 func (ph *ProjectHandler) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("project_id")
 
 	if err := ph.ProjectService.Delete(&models.Project{ID: id}); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)

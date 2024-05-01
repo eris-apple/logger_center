@@ -30,7 +30,7 @@ func TestLog(t *testing.T) *Log {
 
 	return &Log{
 		Content: "Some log information",
-		Level:   "fatal",
+		Level:   enums.Fatal.String(),
 	}
 }
 

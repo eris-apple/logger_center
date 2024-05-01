@@ -23,6 +23,12 @@ type updateUserDTO struct {
 	Role   string `json:"role"`
 }
 
+type findUsersDTO struct {
+	Email  string `form:"email,omitempty"`
+	Status string `form:"status,omitempty"`
+	Role   string `form:"role,omitempty"`
+}
+
 func (uuDTO *updateUserDTO) Validate() error {
 	return validation.ValidateStruct(
 		uuDTO,
@@ -33,17 +39,51 @@ func (uuDTO *updateUserDTO) Validate() error {
 func (uh *UserHandler) FindAll(ctx *gin.Context) {
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	users, err := uh.UserService.FindAll(filter)
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
+	var payload findUsersDTO
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
+	where, structErr := utils.StructToMap(&payload)
+	if structErr != nil {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, structErr)
+		return
+	}
+
+	users, _ := uh.UserService.FindAll(filter, where)
+
 	var sanitizedUsers []models.User
 
-	for _, user := range *users {
-		user.Sanitize()
-		sanitizedUsers = append(sanitizedUsers, user)
+	if users != nil {
+		for _, user := range *users {
+			user.Sanitize()
+			sanitizedUsers = append(sanitizedUsers, user)
+		}
+	}
+
+	utils.ResponseHandler(ctx, http.StatusOK, config.ResUsersFound, sanitizedUsers)
+	return
+}
+
+func (uh *UserHandler) Search(ctx *gin.Context) {
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+
+	queryString := ctx.Query("search")
+	if len(queryString) < 3 {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrUserSearchParam)
+		return
+	}
+
+	users, _ := uh.UserService.Search(filter, queryString)
+
+	var sanitizedUsers []models.User
+
+	if users != nil {
+		for _, user := range *users {
+			user.Sanitize()
+			sanitizedUsers = append(sanitizedUsers, user)
+		}
 	}
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResUsersFound, sanitizedUsers)

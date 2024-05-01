@@ -15,15 +15,13 @@ type Message struct {
 }
 
 type WSSignInDTO struct {
-	Secret    string `json:"secret"`
-	ProjectId string `json:"project_id"`
+	Secret string `json:"secret"`
 }
 
 func (wssDTO *WSSignInDTO) Validate() error {
 	return validation.ValidateStruct(
 		wssDTO,
 		validation.Field(&wssDTO.Secret, validation.Required),
-		validation.Field(&wssDTO.ProjectId, validation.Required),
 	)
 }
 
@@ -60,6 +58,7 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 			}
 
 			marshalData, _ := json.Marshal(msg.Data)
+
 			var data WSSignInDTO
 			if err := json.Unmarshal(marshalData, &data); err != nil {
 				fmt.Println("error with unmarshal")
@@ -67,17 +66,12 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 
 			switch msg.Type {
 			case enums.SignIn.String():
-				fmt.Println(msg.Data)
 				validationErr := data.Validate()
-				_, projectErr := projectStore.FindById(data.ProjectId)
-				_, secretErr := accountServiceStore.FindBySecret(data.Secret)
-
-				if validationErr != nil || projectErr != nil || secretErr != nil {
-					err := conn.WriteJSON(&Message{
+				if validationErr != nil {
+					if err := conn.WriteJSON(&Message{
 						Type: enums.Unverified.String(),
-						Data: "must be authorization",
-					})
-					if err != nil {
+						Data: "Must be authorization",
+					}); err != nil {
 						fmt.Println("error with write json")
 					}
 
@@ -87,22 +81,67 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 					return
 				}
 
+				project, projectErr := projectStore.FindById(projectID)
+				if project == nil || projectErr != nil {
+					if err := conn.WriteJSON(&Message{
+						Type: enums.Unverified.String(),
+						Data: "project not found",
+					}); err != nil {
+						fmt.Println("error with write json")
+					}
+
+					return
+				}
+
+				aSecret, secretErr := accountServiceStore.FindBySecret(data.Secret)
+				if aSecret == nil || secretErr != nil {
+					if err := conn.WriteJSON(&Message{
+						Type: enums.Unverified.String(),
+						Data: "service account not found",
+					}); err != nil {
+						fmt.Println("error with write json")
+					}
+
+					return
+				}
+
+				if project.IsActive == false {
+					if err := conn.WriteJSON(&Message{
+						Type: enums.Unverified.String(),
+						Data: "Project is disabled",
+					}); err != nil {
+						fmt.Println("error with write json")
+					}
+
+					return
+				}
+
+				if aSecret.IsActive == false {
+					if err := conn.WriteJSON(&Message{
+						Type: enums.Unverified.String(),
+						Data: "Service account is disabled",
+					}); err != nil {
+						fmt.Println("error with write json")
+					}
+
+					return
+				}
+
 				clients[conn].IsAuth = true
-				err := conn.WriteJSON(&Message{
+				clients[conn].Secret = data.Secret
+				if err := conn.WriteJSON(&Message{
 					Type: enums.Authorized.String(),
 					Data: "Success",
-				})
-				if err != nil {
+				}); err != nil {
 					fmt.Println("error with write json")
 				}
 
 			default:
 				if !clients[conn].IsAuth {
-					err := conn.WriteJSON(&Message{
+					if err := conn.WriteJSON(&Message{
 						Type: enums.Unverified.String(),
 						Data: "must be authorization",
-					})
-					if err != nil {
+					}); err != nil {
 						fmt.Println("error with write json")
 					}
 
@@ -112,10 +151,14 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 					return
 				}
 
-				WSBroadcast(&Broadcast{
-					Type: msg.Type,
-					Data: msg.Data,
-				}, projectID)
+				WSBroadcast(
+					&Broadcast{
+						Type: msg.Type,
+						Data: msg.Data,
+					},
+					store,
+					clients[conn],
+				)
 			}
 
 		}

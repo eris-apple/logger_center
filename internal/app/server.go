@@ -9,7 +9,6 @@ import (
 	"github.com/aetherteam/logger_center/internal/transport/rest"
 	"github.com/aetherteam/logger_center/internal/transport/ws"
 	"github.com/aetherteam/logger_center/internal/utils"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	redis2 "github.com/redis/go-redis/v9"
 	uuid "github.com/satori/go.uuid"
@@ -27,7 +26,7 @@ type Server struct {
 
 func newServer(config *config.Config, store store.Store) *Server {
 	s := &Server{
-		Router: gin.New(),
+		Router: gin.Default(),
 		Store:  store,
 		Redis: redis2.NewClient(&redis2.Options{
 			Addr:     config.RedisURL,
@@ -45,7 +44,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) configureRouter() {
-	s.Router.Use(cors.New(cors.Config{AllowAllOrigins: true}))
+	s.Router.Use(s.CORSMiddleware())
 	s.Router.Use(s.setRequestID())
 	s.Router.Use(s.logger())
 
@@ -54,13 +53,14 @@ func (s *Server) configureRouter() {
 
 	ug := s.Router.Group("/users")
 	{
-		ug.Use(s.AuthRequired())
+		ug.Use(s.AuthRequired(true))
 
 		userStore := s.Store.User()
 		userService := services.NewUserService(userStore)
 		userHandler := rest.NewUserHandler(userService)
 
 		ug.GET("/", userHandler.FindAll)
+		ug.GET("/search", userHandler.Search)
 		ug.GET("/:user_id", userHandler.FindById)
 		ug.PUT("/:user_id", userHandler.Update)
 		ug.DELETE("/:user_id", userHandler.Delete)
@@ -76,13 +76,12 @@ func (s *Server) configureRouter() {
 
 		ig.POST("/sign-up", identityHandler.SignUp)
 		ig.POST("/sign-in", identityHandler.SignIn)
-		ig.GET("/check", s.AuthRequired(), identityHandler.Check)
+		ig.GET("/check", s.AuthRequired(false), identityHandler.Check)
 	}
 
 	pg := s.Router.Group("/projects")
 	{
-		pg.Use(s.AuthRequired())
-		pg.Use(s.RoleRequired(enums.Admin, enums.Moderator))
+		ug.Use(s.AuthRequired(true), s.RoleRequired(enums.Admin, enums.Moderator))
 		projectStore := s.Store.Project()
 		projectService := services.NewProjectService(projectStore)
 		projectHandler := rest.NewProjectHandler(projectService)
@@ -165,7 +164,7 @@ func HealthCheckHandler(ctx *gin.Context) {
 	ctx.JSON(200, response)
 }
 
-func (s *Server) AuthRequired() gin.HandlerFunc {
+func (s *Server) AuthRequired(withStatus bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
@@ -195,28 +194,30 @@ func (s *Server) AuthRequired() gin.HandlerFunc {
 		}
 
 		user, UErr := s.Store.User().FindById(ss.UserID)
-		if UErr != nil {
+		if user == nil || UErr != nil {
 			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess)
 			ctx.Abort()
 			return
 		}
 
-		if user.Status == enums.Pending.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserNotModerated)
-			ctx.Abort()
-			return
-		}
+		if withStatus == true {
+			if user.Status == enums.Pending.String() {
+				utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserNotModerated)
+				ctx.Abort()
+				return
+			}
 
-		if user.Status == enums.Declined.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserDeclined)
-			ctx.Abort()
-			return
-		}
+			if user.Status == enums.Declined.String() {
+				utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserDeclined)
+				ctx.Abort()
+				return
+			}
 
-		if user.Status == enums.Banned.String() {
-			utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserBanned)
-			ctx.Abort()
-			return
+			if user.Status == enums.Banned.String() {
+				utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrUserBanned)
+				ctx.Abort()
+				return
+			}
 		}
 
 		user.Sanitize()
@@ -243,5 +244,22 @@ func (s *Server) RoleRequired(roles ...enums.Role) gin.HandlerFunc {
 		utils.ErrorResponseHandler(ctx, http.StatusForbidden, config.ErrForbiddenAccess)
 		ctx.Abort()
 		return
+	}
+}
+
+func (s *Server) CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH,OPTIONS,GET,PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
 	}
 }

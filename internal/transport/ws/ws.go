@@ -9,6 +9,7 @@ import (
 type Client struct {
 	Conn      *websocket.Conn
 	ProjectID string `json:"project_id"`
+	Secret    string `json:"secret"`
 	IsAuth    bool   `json:"is_auth"`
 }
 

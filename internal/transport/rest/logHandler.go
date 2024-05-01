@@ -2,12 +2,14 @@ package rest
 
 import (
 	"github.com/aetherteam/logger_center/internal/config"
+	"github.com/aetherteam/logger_center/internal/enums"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/services"
 	"github.com/aetherteam/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"net/http"
+	"time"
 )
 
 type LogHandler struct {
@@ -15,16 +17,18 @@ type LogHandler struct {
 }
 
 type updateLogDTO struct {
-	ChainID   string `json:"chain_id"`
-	ProjectID string `json:"project_id"`
-	Content   string `json:"content"`
-	Level     string `json:"level"`
+	ChainID   string         `json:"chain_id"`
+	ProjectID string         `json:"project_id"`
+	Content   string         `json:"content"`
+	Timestamp time.Time      `json:"Timestamp"`
+	Level     enums.LogLevel `json:"level"`
 }
 
 type createLogDTO struct {
-	ChainID string `json:"chain_id"`
-	Content string `json:"content"`
-	Level   string `json:"level"`
+	ChainID   string         `json:"chain_id"`
+	Content   string         `json:"content"`
+	Timestamp time.Time      `json:"Timestamp"`
+	Level     enums.LogLevel `json:"level"`
 }
 
 func (clDTO *createLogDTO) Validate() error {
@@ -42,11 +46,7 @@ func (lh *LogHandler) FindAll(ctx *gin.Context) {
 	}
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	logs, err := lh.LogService.FindAll(projectID, filter)
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
-		return
-	}
+	logs, _ := lh.LogService.FindAll(projectID, filter)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogsFound, logs)
 	return
@@ -56,11 +56,7 @@ func (lh *LogHandler) FindByProjectId(ctx *gin.Context) {
 	projectID := ctx.Param("project_id")
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	log, err := lh.LogService.FindByProjectId(projectID, filter)
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
-		return
-	}
+	log, _ := lh.LogService.FindByProjectId(projectID, filter)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogFound, log)
 	return
@@ -84,11 +80,7 @@ func (lh *LogHandler) FindByChainId(ctx *gin.Context) {
 
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	logs, err := lh.LogService.FindByChainId(chainID, filter)
-	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
-		return
-	}
+	logs, _ := lh.LogService.FindByChainId(chainID, filter)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogFound, logs)
 	return
@@ -114,7 +106,8 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 		ChainID:   body.ChainID,
 		ProjectID: projectID,
 		Content:   body.Content,
-		Level:     body.Level,
+		Timestamp: body.Timestamp,
+		Level:     body.Level.String(),
 	}
 
 	result, err := lh.LogService.Create(&log)
@@ -142,7 +135,8 @@ func (lh *LogHandler) Update(ctx *gin.Context) {
 		ChainID:   body.ChainID,
 		ProjectID: body.ProjectID,
 		Content:   body.Content,
-		Level:     body.Level,
+		Timestamp: body.Timestamp,
+		Level:     body.Level.String(),
 	}
 
 	result, err := lh.LogService.Update(id, &updatedLog)

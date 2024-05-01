@@ -13,8 +13,17 @@ type UserService struct {
 	UserRepository store.UserRepository
 }
 
-func (us UserService) FindAll(filter *utils.Filter) (*[]models.User, *config.APIError) {
-	users, err := us.UserRepository.FindAll(filter)
+func (us UserService) Search(filter *utils.Filter, queryString string) (*[]models.User, *config.APIError) {
+	users, err := us.UserRepository.Search(filter, queryString)
+	if err != nil {
+		return nil, config.ErrUsersNotFound
+	}
+
+	return users, nil
+}
+
+func (us UserService) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.User, *config.APIError) {
+	users, err := us.UserRepository.FindAll(filter, where)
 	if err != nil {
 		return nil, config.ErrUsersNotFound
 	}

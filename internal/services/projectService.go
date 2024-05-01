@@ -16,7 +16,7 @@ type ProjectService struct {
 func (ps *ProjectService) FindAll(filter *utils.Filter) (*[]models.Project, *config.APIError) {
 	projects, err := ps.ProjectRepository.FindAll(filter)
 	if err != nil {
-		return nil, config.ErrUsersNotFound
+		return nil, config.ErrProjectsNotFound
 	}
 
 	return projects, nil
@@ -25,7 +25,7 @@ func (ps *ProjectService) FindAll(filter *utils.Filter) (*[]models.Project, *con
 func (ps *ProjectService) FindById(id string) (*models.Project, *config.APIError) {
 	project, err := ps.ProjectRepository.FindById(id)
 	if err != nil {
-		return nil, config.ErrUsersNotFound
+		return nil, config.ErrProjectNotFound
 	}
 
 	return project, nil

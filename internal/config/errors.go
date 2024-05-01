@@ -51,6 +51,10 @@ var (
 		Code:    "USER_BANNED",
 		Message: "user is banned",
 	}
+	ErrUserSearchParam = &APIError{
+		Code:    "USER_SEARCH_PARAM",
+		Message: "search param must be a non-empty string and length greater than 3",
+	}
 )
 
 // Sessions
@@ -85,7 +89,7 @@ var (
 	}
 )
 
-// Logs
+// ServiceAccount
 var (
 	ErrServiceAccountNotFound = &APIError{
 		Code:    "SERVICE_ACCOUNT_NOT_FOUND",
