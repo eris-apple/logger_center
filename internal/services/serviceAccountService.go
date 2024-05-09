@@ -14,8 +14,17 @@ type ServiceAccountService struct {
 	ProjectService           ProjectService
 }
 
-func (sas *ServiceAccountService) FindAll(filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
-	sAccounts, err := sas.ServiceAccountRepository.FindAll(filter)
+func (sas *ServiceAccountService) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
+	sAccounts, err := sas.ServiceAccountRepository.Search(projectID, queryString, filter)
+	if err != nil {
+		return nil, config.ErrServiceAccountsNotFound
+	}
+
+	return sAccounts, nil
+}
+
+func (sas *ServiceAccountService) FindAll(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
+	sAccounts, err := sas.ServiceAccountRepository.FindAll(projectID, filter)
 	if err != nil {
 		return nil, config.ErrServiceAccountsNotFound
 	}
@@ -39,20 +48,6 @@ func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAc
 	}
 
 	return sAccount, nil
-}
-
-func (sas *ServiceAccountService) FindByProjectId(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
-	_, projectErr := sas.ProjectService.FindById(projectID)
-	if projectErr != nil {
-		return nil, config.ErrProjectNotFound
-	}
-
-	sAccounts, err := sas.ServiceAccountRepository.FindByProjectId(projectID, filter)
-	if err != nil {
-		return nil, config.ErrUserNotFound
-	}
-
-	return sAccounts, nil
 }
 
 func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*models.ServiceAccount, *config.APIError) {

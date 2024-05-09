@@ -10,7 +10,7 @@ var (
 	ResUserDeleted    = "user was deleted"
 )
 
-// Project
+// Projects
 var (
 	ResProjectFound   = "project was found"
 	ResProjectsFound  = "projects was found"
@@ -19,7 +19,7 @@ var (
 	ResProjectDeleted = "project was deleted"
 )
 
-// Project
+// Logs
 var (
 	ResLogFound   = "log was found"
 	ResLogsFound  = "logs was found"
@@ -28,7 +28,7 @@ var (
 	ResLogDeleted = "log was deleted"
 )
 
-// Project
+// ServiceAccounts
 var (
 	ResServiceAccountFound   = "service account was found"
 	ResServiceAccountsFound  = "service accounts was found"

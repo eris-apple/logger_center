@@ -71,7 +71,6 @@ func (uh *UserHandler) Search(ctx *gin.Context) {
 
 	queryString := ctx.Query("search")
 	if len(queryString) < 3 {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrUserSearchParam)
 		return
 	}
 

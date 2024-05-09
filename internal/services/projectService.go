@@ -13,8 +13,8 @@ type ProjectService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ps *ProjectService) FindAll(filter *utils.Filter) (*[]models.Project, *config.APIError) {
-	projects, err := ps.ProjectRepository.FindAll(filter)
+func (ps *ProjectService) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.Project, *config.APIError) {
+	projects, err := ps.ProjectRepository.FindAll(filter, where)
 	if err != nil {
 		return nil, config.ErrProjectsNotFound
 	}

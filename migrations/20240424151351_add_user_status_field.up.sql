@@ -1,2 +1,2 @@
 ALTER TABLE users
-ADD status varchar null default 'pending';
+ADD COLUMN IF NOT EXISTS status varchar null default 'pending';

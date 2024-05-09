@@ -4,14 +4,28 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestDB(t *testing.T, databaseURL string) (*gorm.DB, func(...string)) {
 	t.Helper()
 
-	db, connectionErr := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             time.Second,
+			LogLevel:                  logger.Error,
+			IgnoreRecordNotFoundError: true,
+			ParameterizedQueries:      true,
+			Colorful:                  true,
+		},
+	)
+	db, connectionErr := gorm.Open(postgres.Open(databaseURL), &gorm.Config{Logger: newLogger})
 	if connectionErr != nil {
 		t.Fatal(connectionErr)
 	}

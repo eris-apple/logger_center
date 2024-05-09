@@ -20,14 +20,14 @@ type updateLogDTO struct {
 	ChainID   string         `json:"chain_id"`
 	ProjectID string         `json:"project_id"`
 	Content   string         `json:"content"`
-	Timestamp time.Time      `json:"Timestamp"`
+	Timestamp int64          `json:"Timestamp"`
 	Level     enums.LogLevel `json:"level"`
 }
 
 type createLogDTO struct {
 	ChainID   string         `json:"chain_id"`
 	Content   string         `json:"content"`
-	Timestamp time.Time      `json:"Timestamp"`
+	Timestamp int64          `json:"Timestamp"`
 	Level     enums.LogLevel `json:"level"`
 }
 
@@ -36,6 +36,26 @@ func (clDTO *createLogDTO) Validate() error {
 		clDTO,
 		validation.Field(&clDTO.Level, validation.Required),
 	)
+}
+
+func (lh *LogHandler) Search(ctx *gin.Context) {
+	projectID := ctx.Param("project_id")
+	if projectID == "" {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
+		return
+	}
+
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+
+	queryString := ctx.Query("search")
+	if len(queryString) < 3 {
+		return
+	}
+
+	logs, _ := lh.LogService.Search(projectID, queryString, filter)
+
+	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogsFound, logs)
+	return
 }
 
 func (lh *LogHandler) FindAll(ctx *gin.Context) {
@@ -49,16 +69,6 @@ func (lh *LogHandler) FindAll(ctx *gin.Context) {
 	logs, _ := lh.LogService.FindAll(projectID, filter)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogsFound, logs)
-	return
-}
-
-func (lh *LogHandler) FindByProjectId(ctx *gin.Context) {
-	projectID := ctx.Param("project_id")
-	filter := utils.GetDefaultsFilterFromQuery(ctx)
-
-	log, _ := lh.LogService.FindByProjectId(projectID, filter)
-
-	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogFound, log)
 	return
 }
 
@@ -102,6 +112,11 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 
 	projectID := ctx.Param("project_id")
 
+	if body.Timestamp <= 0 {
+		now := time.Now()
+		body.Timestamp = now.Unix()
+	}
+
 	log := models.Log{
 		ChainID:   body.ChainID,
 		ProjectID: projectID,
@@ -129,6 +144,11 @@ func (lh *LogHandler) Update(ctx *gin.Context) {
 	}
 
 	id := ctx.Param("log_id")
+
+	if body.Timestamp <= 0 {
+		now := time.Now()
+		body.Timestamp = now.Unix()
+	}
 
 	updatedLog := models.Log{
 		ID:        id,

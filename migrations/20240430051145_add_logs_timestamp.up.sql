@@ -1,2 +1,2 @@
 ALTER TABLE logs
-ADD timestamp timestamp null;
+ADD COLUMN IF NOT EXISTS timestamp integer null;

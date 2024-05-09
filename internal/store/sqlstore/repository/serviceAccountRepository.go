@@ -15,7 +15,7 @@ type ServiceAccountRepository struct {
 	DB *gorm.DB
 }
 
-func (sar *ServiceAccountRepository) FindAll(filter *utils.Filter) (*[]models.ServiceAccount, error) {
+func (sar *ServiceAccountRepository) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
 	sAccounts := &[]models.ServiceAccount{}
 	filter = utils.GetDefaultsFilter(filter)
 
@@ -25,6 +25,7 @@ func (sar *ServiceAccountRepository) FindAll(filter *utils.Filter) (*[]models.Se
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
+		Where("project_id = ? and name ILIKE ?", projectID, "%"+queryString+"%").
 		Scan(&sAccounts)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
@@ -32,7 +33,26 @@ func (sar *ServiceAccountRepository) FindAll(filter *utils.Filter) (*[]models.Se
 	}
 
 	return sAccounts, result.Error
+}
 
+func (sar *ServiceAccountRepository) FindAll(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
+	sAccounts := &[]models.ServiceAccount{}
+	filter = utils.GetDefaultsFilter(filter)
+
+	result := sar.DB.
+		Table("service_accounts").
+		Find(&sAccounts).
+		Offset(filter.Offset).
+		Limit(filter.Limit).
+		Order(filter.Order).
+		Where("project_id = ?", projectID).
+		Scan(&sAccounts)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
+		return nil, store.ErrRecordNotFound
+	}
+
+	return sAccounts, result.Error
 }
 
 func (sar *ServiceAccountRepository) FindById(id string) (*models.ServiceAccount, error) {
@@ -56,25 +76,6 @@ func (sar *ServiceAccountRepository) FindBySecret(secret string) (*models.Servic
 	result := sar.DB.
 		Table("service_accounts").
 		Where("secret = ?", secret).
-		First(sAccount).
-		Scan(&sAccount)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, store.ErrRecordNotFound
-	}
-
-	return sAccount, result.Error
-}
-
-func (sar *ServiceAccountRepository) FindByProjectId(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
-	sAccount := &[]models.ServiceAccount{}
-	filter = utils.GetDefaultsFilter(filter)
-
-	result := sar.DB.
-		Table("service_accounts").
-		Where("project_id = ?", projectID).
-		Offset(filter.Offset).
-		Limit(filter.Limit).
-		Order(filter.Order).
 		First(sAccount).
 		Scan(&sAccount)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {

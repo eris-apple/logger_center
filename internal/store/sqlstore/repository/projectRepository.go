@@ -28,7 +28,7 @@ func (pr *ProjectRepository) Create(p *models.Project) error {
 	return result.Error
 }
 
-func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, error) {
+func (pr *ProjectRepository) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.Project, error) {
 	project := &[]models.Project{}
 	filter = utils.GetDefaultsFilter(filter)
 
@@ -38,6 +38,7 @@ func (pr *ProjectRepository) FindAll(filter *utils.Filter) (*[]models.Project, e
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
+		Where(where).
 		Scan(&project)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {

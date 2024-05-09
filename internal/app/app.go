@@ -6,8 +6,11 @@ import (
 	"github.com/aetherteam/logger_center/internal/store/sqlstore"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 func Start(config *config.Config) error {
@@ -31,7 +34,18 @@ func Start(config *config.Config) error {
 }
 
 func newDB(databaseURL string) (*gorm.DB, *sql.DB, error) {
-	db, connectionErr := gorm.Open(postgres.Open(databaseURL), &gorm.Config{TranslateError: true})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             time.Second,
+			LogLevel:                  logger.Error,
+			IgnoreRecordNotFoundError: true,
+			ParameterizedQueries:      true,
+			Colorful:                  true,
+		},
+	)
+
+	db, connectionErr := gorm.Open(postgres.Open(databaseURL), &gorm.Config{TranslateError: true, Logger: newLogger})
 	if connectionErr != nil {
 		return nil, nil, connectionErr
 	}

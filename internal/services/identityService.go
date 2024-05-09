@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/enums"
 	"github.com/aetherteam/logger_center/internal/models"
@@ -30,10 +29,16 @@ type SingInResponse struct {
 }
 
 func (is *IdentityService) SignUp(user *models.User) (*models.User, *config.APIError) {
+	_, err := is.UserRepository.FindByEmail(user.Email)
+	if err == nil {
+		return nil, config.ErrUserAlreadyExist
+	}
+
 	password, _ := utils.HashString(user.Password)
 
 	user.Password = password
 	user.Role = enums.Guest.String()
+	user.Status = enums.Pending.String()
 
 	if err := is.UserRepository.Create(user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -69,8 +74,6 @@ func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, *c
 
 	atToken, atErr := atJWT.SignedString([]byte(os.Getenv(config.EnvKeyJWTSecret)))
 	if atErr != nil {
-		fmt.Print(os.Getenv(config.EnvKeyJWTSecret))
-		fmt.Print(atErr)
 		return nil, config.ErrInternalServerError
 	}
 

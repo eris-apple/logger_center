@@ -27,21 +27,25 @@ func (uasDTO *createAccountServiceDTO) Validate() error {
 	)
 }
 
+func (sah *ServiceAccountHandler) Search(ctx *gin.Context) {
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+	projectID := ctx.Param("project_id")
+	queryString := ctx.Query("search")
+
+	sAccounts, _ := sah.ServiceAccountService.Search(projectID, queryString, filter)
+
+	utils.ResponseHandler(ctx, http.StatusOK, config.ResServiceAccountsFound, sAccounts)
+	return
+}
+
 func (sah *ServiceAccountHandler) FindAll(ctx *gin.Context) {
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
+	projectID := ctx.Param("project_id")
 
-	sAccounts, _ := sah.ServiceAccountService.FindAll(filter)
+	sAccounts, _ := sah.ServiceAccountService.FindAll(projectID, filter)
 
-	var sanitizedServiceAccounts []models.ServiceAccount
-
-	for _, sAccount := range *sAccounts {
-		sAccount.Sanitize()
-		sanitizedServiceAccounts = append(sanitizedServiceAccounts, sAccount)
-	}
-
-	utils.ResponseHandler(ctx, http.StatusOK, config.ResServiceAccountsFound, sanitizedServiceAccounts)
+	utils.ResponseHandler(ctx, http.StatusOK, config.ResServiceAccountsFound, sAccounts)
 	return
-
 }
 
 func (sah *ServiceAccountHandler) FindById(ctx *gin.Context) {
@@ -52,8 +56,6 @@ func (sah *ServiceAccountHandler) FindById(ctx *gin.Context) {
 		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
 		return
 	}
-
-	sAccount.Sanitize()
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResServiceAccountFound, sAccount)
 	return
@@ -123,8 +125,6 @@ func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
 		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
-
-	result.Sanitize()
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResServiceAccountUpdated, result)
 	return

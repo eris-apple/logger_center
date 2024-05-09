@@ -30,7 +30,7 @@ func TestProjectRepository_FindAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p2, err := s.Project().FindAll(&utils.Filter{})
+	p2, err := s.Project().FindAll(&utils.Filter{}, make(map[string]interface{}))
 	assert.NoError(t, err)
 	assert.NotNil(t, p2)
 }

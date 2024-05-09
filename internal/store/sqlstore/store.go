@@ -7,12 +7,12 @@ import (
 )
 
 type Store struct {
-	DB                *gorm.DB
-	userRepository    *repository.UserRepository
-	sessionRepository *repository.SessionRepository
-	projectRepository *repository.ProjectRepository
-	logRepository     *repository.LogRepository
-	serviceAccount    *repository.ServiceAccountRepository
+	DB                       *gorm.DB
+	userRepository           *repository.UserRepository
+	sessionRepository        *repository.SessionRepository
+	projectRepository        *repository.ProjectRepository
+	logRepository            *repository.LogRepository
+	serviceAccountRepository *repository.ServiceAccountRepository
 }
 
 func New(db *gorm.DB) *Store {
@@ -70,13 +70,13 @@ func (s *Store) Log() store.LogRepository {
 }
 
 func (s *Store) ServiceAccount() store.ServiceAccountRepository {
-	if s.serviceAccount != nil {
-		return s.serviceAccount
+	if s.serviceAccountRepository != nil {
+		return s.serviceAccountRepository
 	}
 
-	s.serviceAccount = &repository.ServiceAccountRepository{
+	s.serviceAccountRepository = &repository.ServiceAccountRepository{
 		DB: s.DB,
 	}
 
-	return s.serviceAccount
+	return s.serviceAccountRepository
 }

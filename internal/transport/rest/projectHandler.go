@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"github.com/aetherteam/logger_center/internal/config"
 	"github.com/aetherteam/logger_center/internal/models"
 	"github.com/aetherteam/logger_center/internal/services"
@@ -33,8 +32,29 @@ func (sDTO *createProjectDTO) Validate() error {
 	)
 }
 
+type findProjectsDTO struct {
+	Name      string `form:"name,omitempty"`
+	Prefix    string `form:"prefix,omitempty"`
+	IsActive  string `form:"is_active,omitempty"`
+	CreatedAt string `form:"created_at,omitempty"`
+}
+
 func (ph *ProjectHandler) FindAll(ctx *gin.Context) {
-	projects, _ := ph.ProjectService.FindAll(&utils.Filter{})
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+
+	var payload findProjectsDTO
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	where, structErr := utils.StructToMap(&payload)
+	if structErr != nil {
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, structErr)
+		return
+	}
+
+	projects, _ := ph.ProjectService.FindAll(filter, where)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResProjectsFound, projects)
 	return
@@ -57,7 +77,6 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 	var body createProjectDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		fmt.Print(err)
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}

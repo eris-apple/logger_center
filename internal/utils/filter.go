@@ -13,12 +13,16 @@ type Filter struct {
 	Order  string
 }
 
-func GetDefaultsFilter(filter *Filter) *Filter {
+func GetDefaultsFilter(filter *Filter, prefix ...string) *Filter {
 	if filter.Limit == 0 {
 		filter.Limit = 10
 	}
 	if filter.Order == "" {
-		filter.Order = "id desc"
+		if len(prefix) > 0 {
+			filter.Order = prefix[0] + ".id desc"
+		} else {
+			filter.Order = "id desc"
+		}
 	}
 
 	return &Filter{
@@ -28,7 +32,7 @@ func GetDefaultsFilter(filter *Filter) *Filter {
 	}
 }
 
-func GetDefaultsFilterFromQuery(ctx *gin.Context) *Filter {
+func GetDefaultsFilterFromQuery(ctx *gin.Context, prefix ...string) *Filter {
 	var limitInt int
 	var offsetInt int
 
@@ -52,6 +56,12 @@ func GetDefaultsFilterFromQuery(ctx *gin.Context) *Filter {
 	}
 
 	order := ctx.Query("order")
+	if order == "" {
+		order = "id desc"
+	}
+	if len(prefix) > 0 {
+		order = prefix[0] + "." + order
+	}
 
 	f := &Filter{
 		Limit:  limitInt,

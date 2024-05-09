@@ -2,16 +2,21 @@ package ws
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aetherteam/logger_center/internal/enums"
 	"github.com/aetherteam/logger_center/internal/store"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/gorilla/websocket"
+	"log"
 )
 
 type Message struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
+	Type string `json:"type"`
+	Data any    `json:"data"`
+}
+
+type WSSignInWrapperDTO struct {
+	Data WSSignInDTO `json:"data"`
 }
 
 type WSSignInDTO struct {
@@ -34,10 +39,16 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 
 		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
-			fmt.Println("Error upgrading connection:", err)
+			log.Fatal("Error upgrading connection:", err)
 			return
 		}
-		defer conn.Close()
+		defer func(conn *websocket.Conn) {
+			err := conn.Close()
+			if err != nil {
+				log.Println("Error close connection:", err)
+				return
+			}
+		}(conn)
 
 		ClientsMu.Lock()
 		clients[conn] = &Client{
@@ -49,30 +60,32 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 
 		for {
 			msg := &Message{}
-			if err := conn.ReadJSON(&msg); err != nil {
-				fmt.Println("Error reading message:", err)
-				ClientsMu.Lock()
-				delete(clients, conn)
-				ClientsMu.Unlock()
-				break
+			_, p, err := conn.ReadMessage()
+			if err != nil {
+				return
 			}
 
-			marshalData, _ := json.Marshal(msg.Data)
-
-			var data WSSignInDTO
-			if err := json.Unmarshal(marshalData, &data); err != nil {
-				fmt.Println("error with unmarshal")
+			if err := json.Unmarshal(p, &msg); err != nil {
+				log.Println("error with unmarshal:", err)
+				return
 			}
 
 			switch msg.Type {
 			case enums.SignIn.String():
-				validationErr := data.Validate()
+				data := WSSignInWrapperDTO{}
+				if err := json.Unmarshal(p, &data); err != nil {
+					log.Println("error with unmarshal:", err)
+					return
+				}
+
+				validationErr := data.Data.Validate()
 				if validationErr != nil {
 					if err := conn.WriteJSON(&Message{
 						Type: enums.Unverified.String(),
 						Data: "Must be authorization",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
 
 					ClientsMu.Lock()
@@ -87,21 +100,22 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 						Type: enums.Unverified.String(),
 						Data: "project not found",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
 
 					return
 				}
 
-				aSecret, secretErr := accountServiceStore.FindBySecret(data.Secret)
+				aSecret, secretErr := accountServiceStore.FindBySecret(data.Data.Secret)
 				if aSecret == nil || secretErr != nil {
 					if err := conn.WriteJSON(&Message{
 						Type: enums.Unverified.String(),
 						Data: "service account not found",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
-
 					return
 				}
 
@@ -110,7 +124,8 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 						Type: enums.Unverified.String(),
 						Data: "Project is disabled",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
 
 					return
@@ -121,28 +136,29 @@ func WSHandler(store store.Store) gin.HandlerFunc {
 						Type: enums.Unverified.String(),
 						Data: "Service account is disabled",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
-
 					return
 				}
 
 				clients[conn].IsAuth = true
-				clients[conn].Secret = data.Secret
+				clients[conn].Secret = data.Data.Secret
 				if err := conn.WriteJSON(&Message{
 					Type: enums.Authorized.String(),
 					Data: "Success",
 				}); err != nil {
-					fmt.Println("error with write json")
+					log.Println("error with write json:", err)
+					return
 				}
-
 			default:
 				if !clients[conn].IsAuth {
 					if err := conn.WriteJSON(&Message{
 						Type: enums.Unverified.String(),
 						Data: "must be authorization",
 					}); err != nil {
-						fmt.Println("error with write json")
+						log.Println("error with write json:", err)
+						return
 					}
 
 					ClientsMu.Lock()

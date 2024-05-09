@@ -41,7 +41,6 @@ func NewConfig() *Config {
 		EnvHashCost    = os.Getenv(EnvKeyHashCost)
 		EnvHashSecret  = os.Getenv(EnvKeyHashSecret)
 	)
-	log.Println(EnvRedisPwd)
 
 	if EnvBindAddress == "" {
 		EnvBindAddress = "localhost:5001"

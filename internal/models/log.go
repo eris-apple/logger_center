@@ -10,6 +10,6 @@ type Log struct {
 	ProjectID string    `json:"project_id"`
 	Content   string    `json:"content"`
 	Level     string    `json:"level"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp int64     `json:"timestamp"`
 	CreatedAt time.Time `json:"created_at"`
 }

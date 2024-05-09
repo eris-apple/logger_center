@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/aetherteam/logger_center/internal/enums"
 	"testing"
+	"time"
 )
 
 func TestUser(t *testing.T) *User {
@@ -29,8 +30,9 @@ func TestLog(t *testing.T) *Log {
 	t.Helper()
 
 	return &Log{
-		Content: "Some log information",
-		Level:   enums.Fatal.String(),
+		Content:   "Some log information",
+		Level:     enums.Fatal.String(),
+		Timestamp: time.Now().Unix(),
 	}
 }
 

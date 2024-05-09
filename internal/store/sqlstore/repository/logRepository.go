@@ -33,6 +33,26 @@ func (ur *LogRepository) Create(l *models.Log) error {
 	return result.Error
 }
 
+func (ur *LogRepository) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.Log, error) {
+	logs := &[]models.Log{}
+	filter = utils.GetDefaultsFilter(filter)
+
+	result := ur.DB.
+		Table("logs").
+		Find(&logs).
+		Offset(filter.Offset).
+		Limit(filter.Limit).
+		Order(filter.Order).
+		Where("project_id = ? and content ILIKE ?", projectID, "%"+queryString+"%").
+		Scan(&logs)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
+		return nil, store.ErrRecordNotFound
+	}
+
+	return logs, result.Error
+}
+
 func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, error) {
 	logs := &[]models.Log{}
 	filter = utils.GetDefaultsFilter(filter)
@@ -62,27 +82,6 @@ func (ur *LogRepository) FindById(id string) (*models.Log, error) {
 	}
 
 	return log, result.Error
-}
-
-func (ur *LogRepository) FindByProjectId(id string, filter *utils.Filter) (*[]models.Log, error) {
-	logs := &[]models.Log{}
-
-	filter = utils.GetDefaultsFilter(filter)
-
-	result := ur.DB.
-		Table("logs").
-		Find(&logs).
-		Offset(filter.Offset).
-		Limit(filter.Limit).
-		Order(filter.Order).
-		Where("project_id = ?", id).
-		Scan(&logs)
-
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, store.ErrRecordNotFound
-	}
-
-	return logs, result.Error
 }
 
 func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error) {

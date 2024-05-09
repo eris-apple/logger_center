@@ -86,9 +86,9 @@ func (s *Server) configureRouter() {
 		projectService := services.NewProjectService(projectStore)
 		projectHandler := rest.NewProjectHandler(projectService)
 
+		pg.POST("/", projectHandler.Create)
 		pg.GET("/", projectHandler.FindAll)
 		pg.GET("/:project_id", projectHandler.FindById)
-		pg.POST("/", projectHandler.Create)
 		pg.PUT("/:project_id", projectHandler.Update)
 		pg.DELETE("/:project_id", projectHandler.Delete)
 
@@ -98,9 +98,10 @@ func (s *Server) configureRouter() {
 			logService := services.NewLogService(logStore, projectStore)
 			logHandler := rest.NewLogHandler(logService)
 
-			lg.GET("/", logHandler.FindAll)
-			lg.GET("/:log_id", logHandler.FindById)
 			lg.POST("/", logHandler.Create)
+			lg.GET("/", logHandler.FindAll)
+			lg.GET("/search", logHandler.Search)
+			lg.GET("/:log_id", logHandler.FindById)
 			lg.PUT("/:log_id", logHandler.Update)
 			lg.DELETE("/:log_id", logHandler.Delete)
 
@@ -111,17 +112,19 @@ func (s *Server) configureRouter() {
 			}
 		}
 
-		sag := pg.Group("/:project_id/service-account")
+		sag := pg.Group("/:project_id/service-accounts")
 		{
 			serviceAccountStore := s.Store.ServiceAccount()
 			serviceAccountService := services.NewServiceAccountService(serviceAccountStore, projectService)
 			serviceAccountHandler := rest.NewServiceAccountHandler(serviceAccountService)
 
-			sag.GET("/", serviceAccountHandler.FindAll)
-			sag.GET("/:service_account_id", serviceAccountHandler.FindById)
 			sag.POST("/", serviceAccountHandler.Create)
+			sag.GET("/", serviceAccountHandler.FindAll)
+			sag.GET("/search", serviceAccountHandler.Search)
+			sag.GET("/:service_account_id", serviceAccountHandler.FindById)
 			sag.PUT("/:service_account_id", serviceAccountHandler.Update)
 			sag.DELETE("/:service_account_id", serviceAccountHandler.Delete)
+
 		}
 	}
 }

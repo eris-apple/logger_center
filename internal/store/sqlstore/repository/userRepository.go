@@ -23,7 +23,7 @@ func (ur *UserRepository) Search(filter *utils.Filter, queryString string) (*[]m
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
-		Where("email LIKE ?", "%"+queryString+"%").
+		Where("email ILIKE ?", "%"+queryString+"%").
 		Scan(&user)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
