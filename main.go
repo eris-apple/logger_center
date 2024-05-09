@@ -12,5 +12,4 @@ func main() {
 	if err := app.Start(c); err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -31,7 +31,7 @@ func TestUserRepository_FindAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	users, err := s.User().FindAll(&utils.Filter{})
+	users, err := s.User().FindAll(&utils.Filter{}, make(map[string]interface{}))
 	assert.NoError(t, err)
 	assert.NotNil(t, users)
 }

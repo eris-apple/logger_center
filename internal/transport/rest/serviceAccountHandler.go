@@ -15,12 +15,13 @@ type ServiceAccountHandler struct {
 	ServiceAccountService *services.ServiceAccountService
 }
 
-type updateAccountServiceDTO struct {
-	IsActive bool   `json:"is_active"`
-	Name     string `json:"name"`
+type createAccountServiceDTO struct {
+	IsActive    bool   `json:"is_active"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
-func (uasDTO *updateAccountServiceDTO) Validate() error {
+func (uasDTO *createAccountServiceDTO) Validate() error {
 	return validation.ValidateStruct(
 		uasDTO,
 	)
@@ -59,7 +60,7 @@ func (sah *ServiceAccountHandler) FindById(ctx *gin.Context) {
 }
 
 func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
-	var body updateAccountServiceDTO
+	var body createAccountServiceDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -75,10 +76,11 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 	projectID := ctx.Param("project_id")
 
 	log := models.ServiceAccount{
-		ProjectID: projectID,
-		Name:      body.Name,
-		IsActive:  body.IsActive,
-		Secret:    utils.RandStringBytes(24),
+		ProjectID:   projectID,
+		Name:        body.Name,
+		IsActive:    body.IsActive,
+		Description: body.Description,
+		Secret:      utils.RandStringBytes(24),
 	}
 
 	result, err := sah.ServiceAccountService.Create(&log)
@@ -93,7 +95,7 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 }
 
 func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
-	var body updateAccountServiceDTO
+	var body createAccountServiceDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -109,10 +111,11 @@ func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
 	id := ctx.Param("service_account_id")
 
 	updatedServiceAccount := models.ServiceAccount{
-		ID:        id,
-		Name:      body.Name,
-		IsActive:  body.IsActive,
-		UpdatedAt: time.Now(),
+		ID:          id,
+		Name:        body.Name,
+		IsActive:    body.IsActive,
+		Description: body.Description,
+		UpdatedAt:   time.Now(),
 	}
 
 	result, err := sah.ServiceAccountService.Update(id, &updatedServiceAccount)

@@ -16,10 +16,11 @@ type ProjectRepository struct {
 func (pr *ProjectRepository) Create(p *models.Project) error {
 	id := uuid.NewV4().String()
 	project := models.Project{
-		ID:       id,
-		Name:     p.Name,
-		Prefix:   p.Prefix,
-		IsActive: p.IsActive,
+		ID:          id,
+		Name:        p.Name,
+		Prefix:      p.Prefix,
+		IsActive:    p.IsActive,
+		Description: p.Description,
 	}
 
 	result := pr.DB.Table("projects").Create(&project).Scan(&p)

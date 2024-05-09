@@ -6,46 +6,46 @@ import (
 )
 
 type UserRepository interface {
-	Create(*models.User) error
-	Search(*utils.Filter, string) (*[]models.User, error)
-	FindAll(*utils.Filter, map[string]interface{}) (*[]models.User, error)
-	FindById(string) (*models.User, error)
-	FindByEmail(string) (*models.User, error)
-	Update(*models.User) error
-	Delete(*models.User) error
+	Create(user *models.User) error
+	Search(filter *utils.Filter, queryString string) (*[]models.User, error)
+	FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.User, error)
+	FindById(id string) (*models.User, error)
+	FindByEmail(email string) (*models.User, error)
+	Update(user *models.User) error
+	Delete(user *models.User) error
 }
 
 type SessionRepository interface {
-	Create(*models.Session) error
-	FindById(string) (*models.Session, error)
-	FindByToken(string) (*models.Session, error)
-	Delete(*models.Session) error
+	Create(session *models.Session) error
+	FindById(id string) (*models.Session, error)
+	FindByToken(token string) (*models.Session, error)
+	Delete(session *models.Session) error
 }
 
 type ProjectRepository interface {
-	Create(*models.Project) error
-	FindAll(*utils.Filter) (*[]models.Project, error)
-	FindById(string) (*models.Project, error)
-	Update(*models.Project) error
-	Delete(*models.Project) error
+	Create(project *models.Project) error
+	FindAll(filter *utils.Filter) (*[]models.Project, error)
+	FindById(id string) (*models.Project, error)
+	Update(project *models.Project) error
+	Delete(project *models.Project) error
 }
 
 type LogRepository interface {
-	Create(*models.Log) error
-	FindAll(string, *utils.Filter) (*[]models.Log, error)
-	FindById(string) (*models.Log, error)
-	FindByProjectId(string, *utils.Filter) (*[]models.Log, error)
-	FindByChainId(string, *utils.Filter) (*[]models.Log, error)
-	Update(*models.Log) error
-	Delete(*models.Log) error
+	Create(log *models.Log) error
+	FindAll(queryString string, filter *utils.Filter) (*[]models.Log, error)
+	FindById(id string) (*models.Log, error)
+	FindByProjectId(projectID string, filter *utils.Filter) (*[]models.Log, error)
+	FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error)
+	Update(log *models.Log) error
+	Delete(log *models.Log) error
 }
 
 type ServiceAccountRepository interface {
-	Create(account *models.ServiceAccount) error
-	FindAll(*utils.Filter) (*[]models.ServiceAccount, error)
-	FindById(string) (*models.ServiceAccount, error)
-	FindBySecret(string) (*models.ServiceAccount, error)
-	FindByProjectId(string, *utils.Filter) (*[]models.ServiceAccount, error)
-	Update(*models.ServiceAccount) error
-	Delete(*models.ServiceAccount) error
+	Create(serviceAccount *models.ServiceAccount) error
+	FindAll(filter *utils.Filter) (*[]models.ServiceAccount, error)
+	FindById(id string) (*models.ServiceAccount, error)
+	FindBySecret(secret string) (*models.ServiceAccount, error)
+	FindByProjectId(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, error)
+	Update(serviceAccount *models.ServiceAccount) error
+	Delete(serviceAccount *models.ServiceAccount) error
 }

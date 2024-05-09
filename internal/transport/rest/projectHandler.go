@@ -17,9 +17,10 @@ type ProjectHandler struct {
 }
 
 type createProjectDTO struct {
-	Name     string `json:"name"`
-	Prefix   string `json:"prefix"`
-	IsActive bool   `json:"is_active"`
+	Name        string `json:"name"`
+	Prefix      string `json:"prefix"`
+	Description string `json:"description"`
+	IsActive    bool   `json:"is_active"`
 }
 
 func (sDTO *createProjectDTO) Validate() error {
@@ -28,6 +29,7 @@ func (sDTO *createProjectDTO) Validate() error {
 		validation.Field(&sDTO.Name, validation.Required),
 		validation.Field(&sDTO.Prefix, validation.Required),
 		validation.Field(&sDTO.IsActive),
+		validation.Field(&sDTO.Description),
 	)
 }
 
@@ -67,9 +69,10 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 	}
 
 	project := &models.Project{
-		Name:     body.Name,
-		Prefix:   body.Prefix,
-		IsActive: body.IsActive,
+		Name:        body.Name,
+		Prefix:      body.Prefix,
+		IsActive:    body.IsActive,
+		Description: body.Description,
 	}
 
 	result, err := ph.ProjectService.Create(project)
@@ -106,11 +109,12 @@ func (ph *ProjectHandler) Update(ctx *gin.Context) {
 	}
 
 	project := models.Project{
-		ID:        fResult.ID,
-		Name:      body.Name,
-		Prefix:    body.Prefix,
-		IsActive:  body.IsActive,
-		UpdatedAt: time.Now(),
+		ID:          fResult.ID,
+		Name:        body.Name,
+		Prefix:      body.Prefix,
+		IsActive:    body.IsActive,
+		Description: body.Description,
+		UpdatedAt:   time.Now(),
 	}
 
 	uResult, UErr := ph.ProjectService.Update(&project)

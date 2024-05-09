@@ -96,12 +96,11 @@ func (sar *ServiceAccountRepository) Create(sA *models.ServiceAccount) error {
 	}
 
 	sAccount := models.ServiceAccount{
-		ID:        id,
-		ProjectID: sA.ProjectID,
-		Secret:    sA.Secret,
-		Name:      sA.Name,
-		CreatedAt: sA.CreatedAt,
-		UpdatedAt: sA.UpdatedAt,
+		ID:          id,
+		ProjectID:   sA.ProjectID,
+		Secret:      sA.Secret,
+		Name:        sA.Name,
+		Description: sA.Description,
 	}
 
 	result := sar.DB.Table("service_accounts").Create(&sAccount).Scan(&sA)
