@@ -1,4 +1,4 @@
-module github.com/aetherteam/logger_center
+module github.com/eris-apple/logger_center
 
 go 1.22
 

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/aetherteam/logger_center/internal/enums"
+	"github.com/eris-apple/logger_center/internal/enums"
 	"testing"
 	"time"
 )

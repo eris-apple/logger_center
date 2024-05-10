@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/aetherteam/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/config"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"

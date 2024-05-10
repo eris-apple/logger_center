@@ -1,9 +1,9 @@
 package repository_test
 
 import (
-	"github.com/aetherteam/logger_center/internal/models"
-	"github.com/aetherteam/logger_center/internal/store/sqlstore"
-	"github.com/aetherteam/logger_center/internal/utils"
+	"github.com/eris-apple/logger_center/internal/models"
+	"github.com/eris-apple/logger_center/internal/store/sqlstore"
+	"github.com/eris-apple/logger_center/internal/utils"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"

@@ -1,10 +1,10 @@
 package ws
 
 import (
-	"github.com/aetherteam/logger_center/internal/enums"
-	"github.com/aetherteam/logger_center/internal/models"
-	"github.com/aetherteam/logger_center/internal/services"
-	"github.com/aetherteam/logger_center/internal/store"
+	"github.com/eris-apple/logger_center/internal/enums"
+	"github.com/eris-apple/logger_center/internal/models"
+	"github.com/eris-apple/logger_center/internal/services"
+	"github.com/eris-apple/logger_center/internal/store"
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"time"

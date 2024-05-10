@@ -2,10 +2,10 @@ package services
 
 import (
 	"errors"
-	"github.com/aetherteam/logger_center/internal/config"
-	"github.com/aetherteam/logger_center/internal/models"
-	"github.com/aetherteam/logger_center/internal/store"
-	"github.com/aetherteam/logger_center/internal/utils"
+	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/models"
+	"github.com/eris-apple/logger_center/internal/store"
+	"github.com/eris-apple/logger_center/internal/utils"
 	"gorm.io/gorm"
 )
 

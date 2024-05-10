@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/aetherteam/logger_center/internal/app"
-	"github.com/aetherteam/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/app"
+	"github.com/eris-apple/logger_center/internal/config"
 	"log"
 	"time"
 )

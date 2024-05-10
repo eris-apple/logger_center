@@ -1,7 +1,7 @@
 package repository_test
 
 import (
-	"github.com/aetherteam/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/config"
 	"os"
 	"testing"
 )

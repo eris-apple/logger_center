@@ -2,8 +2,8 @@ package app
 
 import (
 	"database/sql"
-	"github.com/aetherteam/logger_center/internal/config"
-	"github.com/aetherteam/logger_center/internal/store/sqlstore"
+	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/store/sqlstore"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

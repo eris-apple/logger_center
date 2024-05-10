@@ -1,10 +1,10 @@
 package rest
 
 import (
-	"github.com/aetherteam/logger_center/internal/config"
-	"github.com/aetherteam/logger_center/internal/models"
-	"github.com/aetherteam/logger_center/internal/services"
-	"github.com/aetherteam/logger_center/internal/utils"
+	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/models"
+	"github.com/eris-apple/logger_center/internal/services"
+	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"

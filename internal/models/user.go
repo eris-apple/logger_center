@@ -1,6 +1,8 @@
 package models
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"time"
 )
 
@@ -16,4 +18,12 @@ type User struct {
 
 func (u *User) Sanitize() {
 	u.Password = ""
+}
+
+func (u *User) Validate() error {
+	return validation.ValidateStruct(
+		u,
+		validation.Field(&u.Email, validation.Required, is.Email),
+		validation.Field(&u.Password, validation.Required, validation.Length(8, 32)),
+	)
 }

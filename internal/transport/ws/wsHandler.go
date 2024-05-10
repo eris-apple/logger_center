@@ -2,8 +2,8 @@ package ws
 
 import (
 	"encoding/json"
-	"github.com/aetherteam/logger_center/internal/enums"
-	"github.com/aetherteam/logger_center/internal/store"
+	"github.com/eris-apple/logger_center/internal/enums"
+	"github.com/eris-apple/logger_center/internal/store"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/websocket"

@@ -1,8 +1,8 @@
 package sqlstore
 
 import (
-	"github.com/aetherteam/logger_center/internal/store"
-	"github.com/aetherteam/logger_center/internal/store/sqlstore/repository"
+	"github.com/eris-apple/logger_center/internal/store"
+	"github.com/eris-apple/logger_center/internal/store/sqlstore/repository"
 	"gorm.io/gorm"
 )
 

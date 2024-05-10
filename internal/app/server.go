@@ -1,14 +1,14 @@
 package app
 
 import (
-	config "github.com/aetherteam/logger_center/internal/config"
-	"github.com/aetherteam/logger_center/internal/enums"
-	"github.com/aetherteam/logger_center/internal/models"
-	"github.com/aetherteam/logger_center/internal/services"
-	"github.com/aetherteam/logger_center/internal/store"
-	"github.com/aetherteam/logger_center/internal/transport/rest"
-	"github.com/aetherteam/logger_center/internal/transport/ws"
-	"github.com/aetherteam/logger_center/internal/utils"
+	config "github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/enums"
+	"github.com/eris-apple/logger_center/internal/models"
+	"github.com/eris-apple/logger_center/internal/services"
+	"github.com/eris-apple/logger_center/internal/store"
+	"github.com/eris-apple/logger_center/internal/transport/rest"
+	"github.com/eris-apple/logger_center/internal/transport/ws"
+	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
 	redis2 "github.com/redis/go-redis/v9"
 	uuid "github.com/satori/go.uuid"
@@ -25,8 +25,10 @@ type Server struct {
 }
 
 func newServer(config *config.Config, store store.Store) *Server {
+	gin.SetMode(gin.ReleaseMode)
+
 	s := &Server{
-		Router: gin.Default(),
+		Router: gin.New(),
 		Store:  store,
 		Redis: redis2.NewClient(&redis2.Options{
 			Addr:     config.RedisURL,
@@ -132,7 +134,7 @@ func (s *Server) configureRouter() {
 func (s *Server) setRequestID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id := uuid.NewV4().String()
-		ctx.Header("X-Request-ID", id)
+		ctx.Writer.Header().Set("X-Request-ID", id)
 
 		ctx.Next()
 	}
@@ -147,11 +149,12 @@ func (s *Server) logger() gin.HandlerFunc {
 		latency := time.Since(t)
 
 		// access the status we are sending
+		id := ctx.Writer.Header().Get("X-Request-ID")
 		url := ctx.Request.URL
 		method := ctx.Request.Method
 		body := ctx.Request.Body
 		status := ctx.Writer.Status()
-		log.Println(status, "—", method, url, body, "—", latency)
+		log.Println(status, "—", method, url, body, id, "—", latency)
 	}
 }
 
@@ -185,7 +188,7 @@ func (s *Server) AuthRequired(withStatus bool) gin.HandlerFunc {
 
 		ss, SSErr := s.Store.Session().FindByToken(authHeaderArray[1])
 		if SSErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess)
+			utils.ErrorResponseHandler(ctx, http.StatusUnauthorized, config.ErrSessionExpired)
 			ctx.Abort()
 			return
 		}
@@ -198,7 +201,7 @@ func (s *Server) AuthRequired(withStatus bool) gin.HandlerFunc {
 
 		user, UErr := s.Store.User().FindById(ss.UserID)
 		if user == nil || UErr != nil {
-			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrForbiddenAccess)
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrUserNotFound)
 			ctx.Abort()
 			return
 		}
