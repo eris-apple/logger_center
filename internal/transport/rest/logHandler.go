@@ -135,6 +135,9 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 	l := models.Log{
 		ChainID:   body.ChainID,
 		ProjectID: projectID,
+		Title:     body.Title,
+		Error:     body.Error,
+		Params:    body.Params,
 		Content:   body.Content,
 		Timestamp: body.Timestamp,
 		Level:     body.Level,

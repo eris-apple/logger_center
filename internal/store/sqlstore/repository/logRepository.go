@@ -13,26 +13,6 @@ type LogRepository struct {
 	DB *gorm.DB
 }
 
-func (ur *LogRepository) Create(l *models.Log) error {
-	id := uuid.NewV4().String()
-
-	log := models.Log{
-		ID:        id,
-		ChainID:   l.ChainID,
-		ProjectID: l.ProjectID,
-		Content:   l.Content,
-		Timestamp: l.Timestamp,
-		Level:     l.Level,
-	}
-
-	result := ur.DB.Table("logs").Create(&log).Scan(&l)
-	if result.Error != nil {
-		return store.ErrRecordNotCreated
-	}
-
-	return result.Error
-}
-
 func (ur *LogRepository) Search(projectID string, queryString string, filter *utils.Filter) ([]models.Log, error) {
 	var logs []models.Log
 	filter = utils.GetDefaultsFilter(filter)
@@ -103,6 +83,29 @@ func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) ([]
 	}
 
 	return logs, result.Error
+}
+
+func (ur *LogRepository) Create(l *models.Log) error {
+	id := uuid.NewV4().String()
+
+	log := models.Log{
+		ID:        id,
+		ChainID:   l.ChainID,
+		ProjectID: l.ProjectID,
+		Title:     l.Title,
+		Error:     l.Error,
+		Params:    l.Params,
+		Content:   l.Content,
+		Timestamp: l.Timestamp,
+		Level:     l.Level,
+	}
+
+	result := ur.DB.Table("logs").Create(&log).Scan(&l)
+	if result.Error != nil {
+		return store.ErrRecordNotCreated
+	}
+
+	return result.Error
 }
 
 func (ur *LogRepository) Update(log *models.Log) error {

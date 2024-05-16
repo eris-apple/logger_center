@@ -8,6 +8,9 @@ import (
 type UpdateLogDTO struct {
 	ChainID   string `json:"chain_id"`
 	ProjectID string `json:"project_id"`
+	Title     string `json:"title"`
+	Error     string `json:"error"`
+	Params    string `json:"params"`
 	Content   string `json:"content"`
 	Timestamp int64  `json:"Timestamp"`
 	Level     string `json:"level"`
@@ -15,6 +18,9 @@ type UpdateLogDTO struct {
 
 type CreateLogDTO struct {
 	ChainID   string `json:"chain_id"`
+	Title     string `json:"title"`
+	Error     string `json:"error"`
+	Params    string `json:"params"`
 	Content   string `json:"content"`
 	Timestamp int64  `json:"Timestamp"`
 	Level     string `json:"level"`

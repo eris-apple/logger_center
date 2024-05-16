@@ -53,6 +53,9 @@ func WSBroadcast(b *Broadcast, store store.Store, c *Client) {
 			l := &models.Log{
 				ProjectID: c.ProjectID,
 				ChainID:   body.ChainID,
+				Title:     body.Title,
+				Error:     body.Error,
+				Params:    body.Params,
 				Content:   body.Content,
 				Level:     body.Level,
 				Timestamp: body.Timestamp,
