@@ -2,12 +2,13 @@ package rest
 
 import (
 	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/dto"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/services"
 	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -15,34 +16,10 @@ type ProjectHandler struct {
 	ProjectService services.ProjectService
 }
 
-type createProjectDTO struct {
-	Name        string `json:"name"`
-	Prefix      string `json:"prefix"`
-	Description string `json:"description"`
-	IsActive    bool   `json:"is_active"`
-}
-
-func (sDTO *createProjectDTO) Validate() error {
-	return validation.ValidateStruct(
-		sDTO,
-		validation.Field(&sDTO.Name, validation.Required),
-		validation.Field(&sDTO.Prefix, validation.Required),
-		validation.Field(&sDTO.IsActive),
-		validation.Field(&sDTO.Description),
-	)
-}
-
-type findProjectsDTO struct {
-	Name      string `form:"name,omitempty"`
-	Prefix    string `form:"prefix,omitempty"`
-	IsActive  string `form:"is_active,omitempty"`
-	CreatedAt string `form:"created_at,omitempty"`
-}
-
 func (ph *ProjectHandler) FindAll(ctx *gin.Context) {
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	var payload findProjectsDTO
+	var payload dto.FindProjectsDTO
 	if err := ctx.ShouldBindQuery(&payload); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -74,7 +51,7 @@ func (ph *ProjectHandler) FindById(ctx *gin.Context) {
 }
 
 func (ph *ProjectHandler) Create(ctx *gin.Context) {
-	var body createProjectDTO
+	var body dto.CreateProjectDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -82,8 +59,16 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		if strings.Contains(err.Error(), "name: cannot be blank") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidProjectName)
+			return
+		}
+		if strings.Contains(err.Error(), "prefix: cannot be blank") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidProjectPrefix)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -105,7 +90,7 @@ func (ph *ProjectHandler) Create(ctx *gin.Context) {
 }
 
 func (ph *ProjectHandler) Update(ctx *gin.Context) {
-	var body createProjectDTO
+	var body dto.UpdateProjectDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)

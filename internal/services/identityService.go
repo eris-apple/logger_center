@@ -28,7 +28,7 @@ type SingInResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func (is *IdentityService) SignUp(user *models.User) (*models.User, *config.APIError) {
+func (is *IdentityService) SignUp(user *models.User) (*models.User, error) {
 	_, err := is.UserRepository.FindByEmail(user.Email)
 	if err == nil {
 		return nil, config.ErrUserAlreadyExist
@@ -51,7 +51,7 @@ func (is *IdentityService) SignUp(user *models.User) (*models.User, *config.APIE
 	return user, nil
 }
 
-func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, *config.APIError) {
+func (is *IdentityService) SignIn(credentials *models.User) (*SingInResponse, error) {
 	user, err := is.UserRepository.FindByEmail(credentials.Email)
 	if err != nil {
 		return nil, config.ErrIncorrectEmailOrPassword

@@ -13,7 +13,7 @@ type ProjectService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ps *ProjectService) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.Project, *config.APIError) {
+func (ps *ProjectService) FindAll(filter *utils.Filter, where map[string]interface{}) ([]models.Project, error) {
 	projects, err := ps.ProjectRepository.FindAll(filter, where)
 	if err != nil {
 		return nil, config.ErrProjectsNotFound
@@ -22,7 +22,7 @@ func (ps *ProjectService) FindAll(filter *utils.Filter, where map[string]interfa
 	return projects, nil
 }
 
-func (ps *ProjectService) FindById(id string) (*models.Project, *config.APIError) {
+func (ps *ProjectService) FindById(id string) (*models.Project, error) {
 	project, err := ps.ProjectRepository.FindById(id)
 	if err != nil {
 		return nil, config.ErrProjectNotFound
@@ -31,7 +31,7 @@ func (ps *ProjectService) FindById(id string) (*models.Project, *config.APIError
 	return project, nil
 }
 
-func (ps ProjectService) Create(project *models.Project) (*models.Project, *config.APIError) {
+func (ps ProjectService) Create(project *models.Project) (*models.Project, error) {
 	if err := ps.ProjectRepository.Create(project); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return nil, config.ErrUserAlreadyExist
@@ -43,7 +43,7 @@ func (ps ProjectService) Create(project *models.Project) (*models.Project, *conf
 	return project, nil
 }
 
-func (ps ProjectService) Update(project *models.Project) (*models.Project, *config.APIError) {
+func (ps ProjectService) Update(project *models.Project) (*models.Project, error) {
 	_, _ = ps.FindById(project.ID)
 
 	if err := ps.ProjectRepository.Update(project); err != nil {
@@ -53,7 +53,7 @@ func (ps ProjectService) Update(project *models.Project) (*models.Project, *conf
 	return project, nil
 }
 
-func (ps ProjectService) Delete(project *models.Project) *config.APIError {
+func (ps ProjectService) Delete(project *models.Project) error {
 	_, _ = ps.FindById(project.ID)
 
 	if err := ps.ProjectRepository.Delete(project); err != nil {

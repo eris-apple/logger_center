@@ -2,29 +2,18 @@ package rest
 
 import (
 	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/dto"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/services"
 	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type ServiceAccountHandler struct {
 	ServiceAccountService *services.ServiceAccountService
-}
-
-type createAccountServiceDTO struct {
-	IsActive    bool   `json:"is_active"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-func (uasDTO *createAccountServiceDTO) Validate() error {
-	return validation.ValidateStruct(
-		uasDTO,
-	)
 }
 
 func (sah *ServiceAccountHandler) Search(ctx *gin.Context) {
@@ -62,7 +51,7 @@ func (sah *ServiceAccountHandler) FindById(ctx *gin.Context) {
 }
 
 func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
-	var body createAccountServiceDTO
+	var body dto.CreateServiceAccountDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -70,8 +59,12 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		if strings.Contains(err.Error(), "name: cannot be blank") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidServiceAccountName)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -97,7 +90,7 @@ func (sah *ServiceAccountHandler) Create(ctx *gin.Context) {
 }
 
 func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
-	var body createAccountServiceDTO
+	var body dto.UpdateServiceAccountDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -105,8 +98,7 @@ func (sah *ServiceAccountHandler) Update(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 

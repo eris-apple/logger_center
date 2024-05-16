@@ -2,34 +2,21 @@ package rest
 
 import (
 	"github.com/eris-apple/logger_center/internal/config"
+	"github.com/eris-apple/logger_center/internal/dto"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/services"
 	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"net/http"
+	"strings"
 )
 
 type IdentityHandler struct {
 	IdentityService services.IdentityService
 }
 
-type signDTO struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (sDTO *signDTO) Validate() error {
-	return validation.ValidateStruct(
-		sDTO,
-		validation.Field(&sDTO.Email, validation.Required, is.Email),
-		validation.Field(&sDTO.Password, validation.Required, validation.Length(8, 32)),
-	)
-}
-
 func (ih *IdentityHandler) SignUp(ctx *gin.Context) {
-	var body signDTO
+	var body dto.SignDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -37,8 +24,16 @@ func (ih *IdentityHandler) SignUp(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		if strings.Contains(err.Error(), "must be a valid email address") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidEmail)
+			return
+		}
+		if strings.Contains(err.Error(), "the length must be between 8 and 32") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidPassword)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -60,7 +55,7 @@ func (ih *IdentityHandler) SignUp(ctx *gin.Context) {
 }
 
 func (ih *IdentityHandler) SignIn(ctx *gin.Context) {
-	var body signDTO
+	var body dto.SignDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -68,8 +63,16 @@ func (ih *IdentityHandler) SignIn(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		if strings.Contains(err.Error(), "must be a valid email address") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidEmail)
+			return
+		}
+		if strings.Contains(err.Error(), "the length must be between 8 and 32") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidPassword)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 

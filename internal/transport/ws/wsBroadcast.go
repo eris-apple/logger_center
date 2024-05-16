@@ -70,11 +70,12 @@ func WSBroadcast(b *Broadcast, store store.Store, c *Client) {
 			response.Data = nil
 		}
 
-		err := client.WriteJSON(response)
-		if err != nil {
-			log.Println("Error sending message:", err)
-			_ = client.Close()
-			delete(clients, client)
+		for _, c := range clients {
+			if err := c.Conn.WriteJSON(response); err != nil {
+				log.Println("Error sending message:", err)
+				_ = c.Conn.Close()
+				delete(clients, c.Conn)
+			}
 		}
 	}
 }

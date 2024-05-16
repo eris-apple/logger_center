@@ -13,44 +13,44 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-func (ur *UserRepository) Search(filter *utils.Filter, queryString string) (*[]models.User, error) {
-	user := &[]models.User{}
+func (ur *UserRepository) Search(filter *utils.Filter, queryString string) ([]models.User, error) {
+	var users []models.User
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.DB.
 		Table("users").
-		Find(&user).
+		Find(&users).
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
 		Where("email ILIKE ?", "%"+queryString+"%").
-		Scan(&user)
+		Scan(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return user, result.Error
+	return users, result.Error
 }
 
-func (ur *UserRepository) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.User, error) {
-	user := &[]models.User{}
+func (ur *UserRepository) FindAll(filter *utils.Filter, where map[string]interface{}) ([]models.User, error) {
+	var users []models.User
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.DB.
 		Table("users").
-		Find(&user).
+		Find(&users).
 		Offset(filter.Offset).
 		Limit(filter.Limit).
 		Order(filter.Order).
 		Where(where).
-		Scan(&user)
+		Scan(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return user, result.Error
+	return users, result.Error
 }
 
 func (ur *UserRepository) FindById(id string) (*models.User, error) {

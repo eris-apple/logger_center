@@ -1,21 +1,19 @@
-package repository
+package teststore_repository
 
 import (
-	"errors"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/store"
 	"github.com/eris-apple/logger_center/internal/utils"
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
 
 type ProjectRepository struct {
-	DB *gorm.DB
+	Projects map[string]*models.Project
 }
 
 func (pr *ProjectRepository) Create(p *models.Project) error {
 	id := uuid.NewV4().String()
-	project := models.Project{
+	*p = models.Project{
 		ID:          id,
 		Name:        p.Name,
 		Prefix:      p.Prefix,
@@ -23,56 +21,74 @@ func (pr *ProjectRepository) Create(p *models.Project) error {
 		Description: p.Description,
 	}
 
-	result := pr.DB.Table("projects").Create(&project).Scan(&p)
+	pr.Projects[id] = p
 
-	return result.Error
+	return nil
 }
 
 func (pr *ProjectRepository) FindAll(filter *utils.Filter, where map[string]interface{}) ([]models.Project, error) {
-	var project []models.Project
 	filter = utils.GetDefaultsFilter(filter)
 
-	result := pr.DB.
-		Table("projects").
-		Find(&project).
-		Offset(filter.Offset).
-		Limit(filter.Limit).
-		Order(filter.Order).
-		Where(where).
-		Scan(&project)
+	var ap []models.Project
+	for _, p := range pr.Projects {
+		ap = append(ap, *p)
+	}
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) || result.RowsAffected == 0 {
+	fProjects := utils.FilterArray(ap, filter)
+	if fProjects == nil {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return project, result.Error
+	var projects []models.Project
+	if len(where) != 0 {
+		for _, p := range fProjects {
+			if where["Name"] == p.Name {
+				projects = append(projects, p)
+			}
+			if where["prefix"] == p.Prefix {
+				projects = append(projects, p)
+			}
+			if where["is_active"] == p.IsActive {
+				projects = append(projects, p)
+			}
+			if where["created_at"] == p.CreatedAt {
+				projects = append(projects, p)
+			}
+		}
+	} else {
+		projects = fProjects
+	}
+
+	return projects, nil
 }
 
 func (pr *ProjectRepository) FindById(id string) (*models.Project, error) {
-	project := &models.Project{}
-
-	result := pr.DB.Table("projects").Where("id = ?", id).First(project).Scan(&project)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	project := pr.Projects[id]
+	if project == nil {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return project, result.Error
+	return project, nil
 }
 
 func (pr *ProjectRepository) Update(project *models.Project) error {
-	result := pr.DB.Table("projects").Save(project).Scan(&project)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	p := pr.Projects[project.ID]
+	if p == nil {
 		return store.ErrRecordNotFound
 	}
 
-	return result.Error
+	pr.Projects[project.ID] = project
+
+	return nil
 }
 
 func (pr *ProjectRepository) Delete(project *models.Project) error {
-	result := pr.DB.Table("projects").Delete(project)
-	if result.Error != nil {
+	p := pr.Projects[project.ID]
+	if p == nil {
 		return store.ErrRecordNotFound
 	}
 
-	return result.Error
+	pr.Projects[project.ID] = nil
+
+	return nil
 }

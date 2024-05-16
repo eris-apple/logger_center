@@ -13,7 +13,7 @@ type UserService struct {
 	UserRepository store.UserRepository
 }
 
-func (us UserService) Search(filter *utils.Filter, queryString string) (*[]models.User, *config.APIError) {
+func (us UserService) Search(filter *utils.Filter, queryString string) ([]models.User, error) {
 	users, err := us.UserRepository.Search(filter, queryString)
 	if err != nil {
 		return nil, config.ErrUsersNotFound
@@ -22,7 +22,7 @@ func (us UserService) Search(filter *utils.Filter, queryString string) (*[]model
 	return users, nil
 }
 
-func (us UserService) FindAll(filter *utils.Filter, where map[string]interface{}) (*[]models.User, *config.APIError) {
+func (us UserService) FindAll(filter *utils.Filter, where map[string]interface{}) ([]models.User, error) {
 	users, err := us.UserRepository.FindAll(filter, where)
 	if err != nil {
 		return nil, config.ErrUsersNotFound
@@ -31,7 +31,7 @@ func (us UserService) FindAll(filter *utils.Filter, where map[string]interface{}
 	return users, nil
 }
 
-func (us UserService) FindById(id string) (*models.User, *config.APIError) {
+func (us UserService) FindById(id string) (*models.User, error) {
 	user, err := us.UserRepository.FindById(id)
 	if err != nil {
 		return nil, config.ErrUserNotFound
@@ -40,7 +40,7 @@ func (us UserService) FindById(id string) (*models.User, *config.APIError) {
 	return user, nil
 }
 
-func (us UserService) Update(id string, updatedUser *models.User) (*models.User, *config.APIError) {
+func (us UserService) Update(id string, updatedUser *models.User) (*models.User, error) {
 	user, _ := us.FindById(id)
 
 	if validation.IsEmpty(updatedUser.Password) {
@@ -49,6 +49,11 @@ func (us UserService) Update(id string, updatedUser *models.User) (*models.User,
 
 	if validation.IsEmpty(updatedUser.Email) {
 		updatedUser.Email = user.Email
+	} else {
+		cue, _ := us.UserRepository.FindByEmail(updatedUser.Email)
+		if cue != nil {
+			return nil, config.ErrUserAlreadyExist
+		}
 	}
 
 	if validation.IsEmpty(updatedUser.Role) {
@@ -68,7 +73,7 @@ func (us UserService) Update(id string, updatedUser *models.User) (*models.User,
 	return updatedUser, nil
 }
 
-func (us UserService) Delete(id string) *config.APIError {
+func (us UserService) Delete(id string) error {
 	user, _ := us.FindById(id)
 
 	if err := us.UserRepository.Delete(user); err != nil {

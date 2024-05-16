@@ -33,8 +33,8 @@ func (ur *LogRepository) Create(l *models.Log) error {
 	return result.Error
 }
 
-func (ur *LogRepository) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.Log, error) {
-	logs := &[]models.Log{}
+func (ur *LogRepository) Search(projectID string, queryString string, filter *utils.Filter) ([]models.Log, error) {
+	var logs []models.Log
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.DB.
@@ -53,8 +53,8 @@ func (ur *LogRepository) Search(projectID string, queryString string, filter *ut
 	return logs, result.Error
 }
 
-func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, error) {
-	logs := &[]models.Log{}
+func (ur *LogRepository) FindAll(projectID string, filter *utils.Filter) ([]models.Log, error) {
+	var logs []models.Log
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := ur.DB.
@@ -84,8 +84,8 @@ func (ur *LogRepository) FindById(id string) (*models.Log, error) {
 	return log, result.Error
 }
 
-func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, error) {
-	logs := &[]models.Log{}
+func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) ([]models.Log, error) {
+	var logs []models.Log
 
 	filter = utils.GetDefaultsFilter(filter)
 
@@ -95,7 +95,7 @@ func (ur *LogRepository) FindByChainId(chainID string, filter *utils.Filter) (*[
 		Limit(filter.Limit).
 		Order(filter.Order).
 		Where("chain_id = ?", chainID).
-		Find(logs).
+		Find(&logs).
 		Scan(&logs)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {

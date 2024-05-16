@@ -15,8 +15,8 @@ type ServiceAccountRepository struct {
 	DB *gorm.DB
 }
 
-func (sar *ServiceAccountRepository) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
-	sAccounts := &[]models.ServiceAccount{}
+func (sar *ServiceAccountRepository) Search(projectID string, queryString string, filter *utils.Filter) ([]models.ServiceAccount, error) {
+	var sAccounts []models.ServiceAccount
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := sar.DB.
@@ -35,8 +35,8 @@ func (sar *ServiceAccountRepository) Search(projectID string, queryString string
 	return sAccounts, result.Error
 }
 
-func (sar *ServiceAccountRepository) FindAll(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, error) {
-	sAccounts := &[]models.ServiceAccount{}
+func (sar *ServiceAccountRepository) FindAll(projectID string, filter *utils.Filter) ([]models.ServiceAccount, error) {
+	var sAccounts []models.ServiceAccount
 	filter = utils.GetDefaultsFilter(filter)
 
 	result := sar.DB.
@@ -85,26 +85,28 @@ func (sar *ServiceAccountRepository) FindBySecret(secret string) (*models.Servic
 	return sAccount, result.Error
 }
 
-func (sar *ServiceAccountRepository) Create(sA *models.ServiceAccount) error {
+func (sar *ServiceAccountRepository) Create(sa *models.ServiceAccount) error {
 	id := uuid.NewV4().String()
 
-	if validation.IsEmpty(sA.CreatedAt) {
-		sA.CreatedAt = time.Time{}
+	now := time.Now()
+
+	if validation.IsEmpty(sa.CreatedAt) {
+		sa.CreatedAt = now
 	}
 
-	if validation.IsEmpty(sA.UpdatedAt) {
-		sA.UpdatedAt = time.Time{}
+	if validation.IsEmpty(sa.UpdatedAt) {
+		sa.UpdatedAt = now
 	}
 
 	sAccount := models.ServiceAccount{
 		ID:          id,
-		ProjectID:   sA.ProjectID,
-		Secret:      sA.Secret,
-		Name:        sA.Name,
-		Description: sA.Description,
+		ProjectID:   sa.ProjectID,
+		Secret:      sa.Secret,
+		Name:        sa.Name,
+		Description: sa.Description,
 	}
 
-	result := sar.DB.Table("service_accounts").Create(&sAccount).Scan(&sA)
+	result := sar.DB.Table("service_accounts").Create(&sAccount).Scan(&sa)
 	if result.Error != nil {
 		return store.ErrRecordNotCreated
 	}
@@ -112,8 +114,8 @@ func (sar *ServiceAccountRepository) Create(sA *models.ServiceAccount) error {
 	return result.Error
 }
 
-func (sar *ServiceAccountRepository) Update(sA *models.ServiceAccount) error {
-	result := sar.DB.Table("service_accounts").Save(sA).Scan(&sA)
+func (sar *ServiceAccountRepository) Update(sa *models.ServiceAccount) error {
+	result := sar.DB.Table("service_accounts").Save(sa).Scan(&sa)
 	if result.Error != nil {
 		return store.ErrRecordNotUpdated
 	}
@@ -121,8 +123,8 @@ func (sar *ServiceAccountRepository) Update(sA *models.ServiceAccount) error {
 	return result.Error
 }
 
-func (sar *ServiceAccountRepository) Delete(sA *models.ServiceAccount) error {
-	result := sar.DB.Table("service_accounts").Delete(sA)
+func (sar *ServiceAccountRepository) Delete(sa *models.ServiceAccount) error {
+	result := sar.DB.Table("service_accounts").Delete(sa)
 	if result.Error != nil {
 		return store.ErrRecordNotUpdated
 	}

@@ -12,44 +12,44 @@ type SessionRepository struct {
 	DB *gorm.DB
 }
 
-func (pr *SessionRepository) Create(s *models.Session) error {
+func (sr *SessionRepository) Create(s *models.Session) error {
 	id := uuid.NewV4().String()
-	project := models.Session{
+	session := models.Session{
 		ID:       id,
 		Token:    s.Token,
 		UserID:   s.UserID,
 		IsActive: s.IsActive,
 	}
 
-	result := pr.DB.Table("sessions").Create(&project).Scan(&s)
+	result := sr.DB.Table("sessions").Create(&session).Scan(&s)
 
 	return result.Error
 }
 
-func (pr *SessionRepository) FindById(id string) (*models.Session, error) {
-	project := &models.Session{}
+func (sr *SessionRepository) FindById(id string) (*models.Session, error) {
+	session := &models.Session{}
 
-	result := pr.DB.Table("sessions").Where("id = ?", id).First(project).Scan(&project)
+	result := sr.DB.Table("sessions").Where("id = ?", id).First(session).Scan(&session)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return project, result.Error
+	return session, result.Error
 }
 
-func (pr *SessionRepository) FindByToken(token string) (*models.Session, error) {
-	project := &models.Session{}
+func (sr *SessionRepository) FindByToken(token string) (*models.Session, error) {
+	session := &models.Session{}
 
-	result := pr.DB.Table("sessions").Where("token = ?", token).First(project).Scan(&project)
+	result := sr.DB.Table("sessions").Where("token = ?", token).First(session).Scan(&session)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, store.ErrRecordNotFound
 	}
 
-	return project, result.Error
+	return session, result.Error
 }
 
-func (pr *SessionRepository) Delete(session *models.Session) error {
-	result := pr.DB.Table("sessions").Delete(session)
+func (sr *SessionRepository) Delete(session *models.Session) error {
+	result := sr.DB.Table("sessions").Delete(session)
 	if result.Error != nil {
 		return store.ErrRecordNotFound
 	}

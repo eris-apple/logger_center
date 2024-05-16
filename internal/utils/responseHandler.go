@@ -12,17 +12,9 @@ func ResponseHandler(ctx *gin.Context, code int, message string, data interface{
 	})
 }
 
-func ErrorResponseHandler(ctx *gin.Context, code int, err interface{}) {
+func ErrorResponseHandler(ctx *gin.Context, code int, err error) {
 	ctx.AbortWithStatusJSON(code, gin.H{
 		"status": "failed",
-		"error":  err,
-	})
-}
-
-func ErrorResponseValidationHandler(ctx *gin.Context, code int, err interface{}, val interface{}) {
-	ctx.AbortWithStatusJSON(code, gin.H{
-		"status":     "failed",
-		"error":      err,
-		"validation": val,
+		"error":  err.Error(),
 	})
 }

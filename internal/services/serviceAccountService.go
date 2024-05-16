@@ -14,7 +14,7 @@ type ServiceAccountService struct {
 	ProjectService           ProjectService
 }
 
-func (sas *ServiceAccountService) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) Search(projectID string, queryString string, filter *utils.Filter) ([]models.ServiceAccount, error) {
 	sAccounts, err := sas.ServiceAccountRepository.Search(projectID, queryString, filter)
 	if err != nil {
 		return nil, config.ErrServiceAccountsNotFound
@@ -23,7 +23,7 @@ func (sas *ServiceAccountService) Search(projectID string, queryString string, f
 	return sAccounts, nil
 }
 
-func (sas *ServiceAccountService) FindAll(projectID string, filter *utils.Filter) (*[]models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) FindAll(projectID string, filter *utils.Filter) ([]models.ServiceAccount, error) {
 	sAccounts, err := sas.ServiceAccountRepository.FindAll(projectID, filter)
 	if err != nil {
 		return nil, config.ErrServiceAccountsNotFound
@@ -32,7 +32,7 @@ func (sas *ServiceAccountService) FindAll(projectID string, filter *utils.Filter
 	return sAccounts, nil
 }
 
-func (sas *ServiceAccountService) FindById(id string) (*models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) FindById(id string) (*models.ServiceAccount, error) {
 	sAccount, err := sas.ServiceAccountRepository.FindById(id)
 	if err != nil {
 		return nil, config.ErrServiceAccountNotFound
@@ -41,7 +41,7 @@ func (sas *ServiceAccountService) FindById(id string) (*models.ServiceAccount, *
 	return sAccount, nil
 }
 
-func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAccount, error) {
 	sAccount, err := sas.ServiceAccountRepository.FindBySecret(secret)
 	if err != nil {
 		return nil, config.ErrServiceAccountNotFound
@@ -50,7 +50,7 @@ func (sas *ServiceAccountService) FindBySecret(secret string) (*models.ServiceAc
 	return sAccount, nil
 }
 
-func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*models.ServiceAccount, error) {
 	_, projectErr := sas.ProjectService.FindById(sAccount.ProjectID)
 	if projectErr != nil {
 		return nil, config.ErrProjectNotFound
@@ -64,7 +64,7 @@ func (sas *ServiceAccountService) Create(sAccount *models.ServiceAccount) (*mode
 
 }
 
-func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) (*models.ServiceAccount, *config.APIError) {
+func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) (*models.ServiceAccount, error) {
 	sAccount, err := sas.FindById(id)
 	if err != nil {
 		return nil, config.ErrServiceAccountNotFound
@@ -99,7 +99,7 @@ func (sas *ServiceAccountService) Update(id string, usa *models.ServiceAccount) 
 	return usa, nil
 }
 
-func (sas *ServiceAccountService) Delete(id string) *config.APIError {
+func (sas *ServiceAccountService) Delete(id string) error {
 	sAccount, err := sas.FindById(id)
 	if err != nil {
 		return config.ErrServiceAccountNotFound

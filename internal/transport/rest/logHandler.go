@@ -2,13 +2,14 @@ package rest
 
 import (
 	"github.com/eris-apple/logger_center/internal/config"
-	"github.com/eris-apple/logger_center/internal/enums"
+	"github.com/eris-apple/logger_center/internal/dto"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/services"
 	"github.com/eris-apple/logger_center/internal/utils"
 	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -16,57 +17,45 @@ type LogHandler struct {
 	LogService services.LogService
 }
 
-type updateLogDTO struct {
-	ChainID   string         `json:"chain_id"`
-	ProjectID string         `json:"project_id"`
-	Content   string         `json:"content"`
-	Timestamp int64          `json:"Timestamp"`
-	Level     enums.LogLevel `json:"level"`
-}
-
-type createLogDTO struct {
-	ChainID   string         `json:"chain_id"`
-	Content   string         `json:"content"`
-	Timestamp int64          `json:"Timestamp"`
-	Level     enums.LogLevel `json:"level"`
-}
-
-func (clDTO *createLogDTO) Validate() error {
-	return validation.ValidateStruct(
-		clDTO,
-		validation.Field(&clDTO.Level, validation.Required),
-	)
-}
-
 func (lh *LogHandler) Search(ctx *gin.Context) {
-	projectID := ctx.Param("project_id")
-	if projectID == "" {
-		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
-		return
-	}
-
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
+	projectID := ctx.Param("project_id")
 	queryString := ctx.Query("search")
 	if len(queryString) < 3 {
 		return
 	}
 
-	logs, _ := lh.LogService.Search(projectID, queryString, filter)
+	logs, err := lh.LogService.Search(projectID, queryString, filter)
+	if err != nil {
+		if err.Error() == config.ErrLogsNotFound.Error() {
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrLogsNotFound)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
+		return
+	}
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogsFound, logs)
 	return
 }
 
 func (lh *LogHandler) FindAll(ctx *gin.Context) {
+	filter := utils.GetDefaultsFilterFromQuery(ctx)
+
 	projectID := ctx.Param("project_id")
-	if projectID == "" {
+
+	logs, err := lh.LogService.FindAll(projectID, filter)
+	if err != nil {
+		if err.Error() == config.ErrLogsNotFound.Error() {
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrLogsNotFound)
+			return
+		}
+
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
-	filter := utils.GetDefaultsFilterFromQuery(ctx)
-
-	logs, _ := lh.LogService.FindAll(projectID, filter)
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogsFound, logs)
 	return
@@ -77,7 +66,12 @@ func (lh *LogHandler) FindById(ctx *gin.Context) {
 
 	log, err := lh.LogService.FindById(logID)
 	if err != nil {
-		utils.ErrorResponseHandler(ctx, http.StatusNotFound, err)
+		if err.Error() == config.ErrLogNotFound.Error() {
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrLogNotFound)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -90,14 +84,23 @@ func (lh *LogHandler) FindByChainId(ctx *gin.Context) {
 
 	filter := utils.GetDefaultsFilterFromQuery(ctx)
 
-	logs, _ := lh.LogService.FindByChainId(chainID, filter)
+	logs, err := lh.LogService.FindByChainId(chainID, filter)
+	if err != nil {
+		if err.Error() == config.ErrLogsNotFound.Error() {
+			utils.ErrorResponseHandler(ctx, http.StatusNotFound, config.ErrLogsNotFound)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
+		return
+	}
 
 	utils.ResponseHandler(ctx, http.StatusOK, config.ResLogFound, logs)
 	return
 }
 
 func (lh *LogHandler) Create(ctx *gin.Context) {
-	var body createLogDTO
+	var body dto.CreateLogDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
@@ -105,8 +108,20 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 	}
 
 	if err := body.Validate(); err != nil {
-		splitErr, _ := err.(validation.Errors)
-		utils.ErrorResponseValidationHandler(ctx, http.StatusBadRequest, config.ErrBadRequest, splitErr)
+		if strings.Contains(err.Error(), "level: cannot be blank") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidLogLevel)
+			return
+		}
+		if strings.Contains(err.Error(), "level: must be a valid value") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidLogLevel)
+			return
+		}
+		if strings.Contains(err.Error(), "chain_id: must be a valid UUID") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidLogChainID)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
@@ -117,15 +132,15 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 		body.Timestamp = now.Unix()
 	}
 
-	log := models.Log{
+	l := models.Log{
 		ChainID:   body.ChainID,
 		ProjectID: projectID,
 		Content:   body.Content,
 		Timestamp: body.Timestamp,
-		Level:     body.Level.String(),
+		Level:     body.Level,
 	}
 
-	result, err := lh.LogService.Create(&log)
+	result, err := lh.LogService.Create(&l)
 	if err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -136,14 +151,31 @@ func (lh *LogHandler) Create(ctx *gin.Context) {
 }
 
 func (lh *LogHandler) Update(ctx *gin.Context) {
-	var body updateLogDTO
+	var body dto.UpdateLogDTO
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
 		return
 	}
 
+	if err := body.Validate(); err != nil {
+		log.Println(err.Error())
+		if strings.Contains(err.Error(), "level: must be a valid value") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidLogLevel)
+			return
+		}
+		if strings.Contains(err.Error(), "chain_id: must be a valid UUID") {
+			utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrInvalidLogChainID)
+			return
+		}
+
+		utils.ErrorResponseHandler(ctx, http.StatusBadRequest, config.ErrBadRequest)
+		return
+	}
+
 	id := ctx.Param("log_id")
+	log.Print("id")
+	log.Print(id)
 
 	if body.Timestamp <= 0 {
 		now := time.Now()
@@ -156,7 +188,7 @@ func (lh *LogHandler) Update(ctx *gin.Context) {
 		ProjectID: body.ProjectID,
 		Content:   body.Content,
 		Timestamp: body.Timestamp,
-		Level:     body.Level.String(),
+		Level:     body.Level,
 	}
 
 	result, err := lh.LogService.Update(id, &updatedLog)

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/eris-apple/logger_center/internal/config"
 	"github.com/eris-apple/logger_center/internal/models"
 	"github.com/eris-apple/logger_center/internal/store"
@@ -12,7 +13,7 @@ type LogService struct {
 	ProjectRepository store.ProjectRepository
 }
 
-func (ls *LogService) Search(projectID string, queryString string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
+func (ls *LogService) Search(projectID string, queryString string, filter *utils.Filter) ([]models.Log, error) {
 	logs, err := ls.LogRepository.Search(projectID, queryString, filter)
 	if err != nil {
 		return nil, config.ErrLogsNotFound
@@ -21,7 +22,7 @@ func (ls *LogService) Search(projectID string, queryString string, filter *utils
 	return logs, nil
 }
 
-func (ls *LogService) FindAll(projectID string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
+func (ls *LogService) FindAll(projectID string, filter *utils.Filter) ([]models.Log, error) {
 	logs, err := ls.LogRepository.FindAll(projectID, filter)
 	if err != nil {
 		return nil, config.ErrLogsNotFound
@@ -30,7 +31,7 @@ func (ls *LogService) FindAll(projectID string, filter *utils.Filter) (*[]models
 	return logs, nil
 }
 
-func (ls *LogService) FindById(id string) (*models.Log, *config.APIError) {
+func (ls *LogService) FindById(id string) (*models.Log, error) {
 	log, err := ls.LogRepository.FindById(id)
 	if err != nil {
 		return nil, config.ErrLogNotFound
@@ -39,7 +40,7 @@ func (ls *LogService) FindById(id string) (*models.Log, *config.APIError) {
 	return log, nil
 }
 
-func (ls *LogService) FindByChainId(chainID string, filter *utils.Filter) (*[]models.Log, *config.APIError) {
+func (ls *LogService) FindByChainId(chainID string, filter *utils.Filter) ([]models.Log, error) {
 	logs, err := ls.LogRepository.FindByChainId(chainID, filter)
 	if err != nil {
 		return nil, config.ErrLogNotFound
@@ -48,7 +49,7 @@ func (ls *LogService) FindByChainId(chainID string, filter *utils.Filter) (*[]mo
 	return logs, nil
 }
 
-func (ls *LogService) Create(log *models.Log) (*models.Log, *config.APIError) {
+func (ls *LogService) Create(log *models.Log) (*models.Log, error) {
 	if _, err := ls.ProjectRepository.FindById(log.ProjectID); err != nil {
 		return nil, config.ErrProjectNotFound
 	}
@@ -60,7 +61,7 @@ func (ls *LogService) Create(log *models.Log) (*models.Log, *config.APIError) {
 	return log, nil
 }
 
-func (ls *LogService) Update(id string, updatedLog *models.Log) (*models.Log, *config.APIError) {
+func (ls *LogService) Update(id string, updatedLog *models.Log) (*models.Log, error) {
 	log, _ := ls.FindById(id)
 
 	if updatedLog.Content == "" {
@@ -82,13 +83,14 @@ func (ls *LogService) Update(id string, updatedLog *models.Log) (*models.Log, *c
 	updatedLog.CreatedAt = log.CreatedAt
 
 	if err := ls.LogRepository.Update(updatedLog); err != nil {
+		fmt.Println(updatedLog)
 		return nil, config.ErrInternalServerError
 	}
 
 	return updatedLog, nil
 }
 
-func (ls *LogService) Delete(id string) *config.APIError {
+func (ls *LogService) Delete(id string) error {
 	log, _ := ls.FindById(id)
 
 	if err := ls.LogRepository.Delete(log); err != nil {
